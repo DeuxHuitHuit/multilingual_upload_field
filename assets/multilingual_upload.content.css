@@ -1,0 +1,103 @@
+div.field-multilingualupload .invalid > div {
+	padding: 0.75em 1em 0.75em;
+}
+
+div.field-multilingualupload .invalid > div {
+	margin-bottom: 0;
+	background-color: #d42;
+	border: 1px solid #c31;
+	border-bottom-width: 0;
+}
+
+div.field-multilingualupload > div.container {
+	margin-bottom: 1.5em;
+}
+
+div.field-multilingualupload div.container label {
+	margin-bottom: 0;
+}
+
+
+/*--------------------------------------------*/
+/* !Tabs */
+/*--------------------------------------------*/
+div.field-multilingualupload label {
+	display: block;
+}
+
+div.field-multilingualupload .tab-panel {
+	padding: 10px;
+	background-color: #F5F5F3;
+	border: 1px solid #E4E4DE;
+	border-top: 0;
+	overflow: auto;
+	clear: both;
+}
+
+div.field-multilingualupload ul.tabs {
+	float: left;
+	margin: 0;
+	width: 100%;
+	border-bottom: 1px solid #E4E4DE;
+}
+
+fieldset.primary div.field-multilingualupload ul.tabs {
+/*	float: left; */
+}
+
+fieldset.secondary div.field-multilingualupload ul.tabs {
+/*	float: right; */
+}
+
+div.field-multilingualupload ul.tabs li {
+	color: #aaaa99;
+	cursor: pointer;
+	text-decoration: none;
+	float: left;
+	display: block;
+	padding: 2px 8px;
+	margin: 0 0 -1px 0;
+	border: 1px solid #E4E4DE;
+	-webkit-border-top-left-radius: 3px;
+	-webkit-border-top-right-radius: 3px;
+	-moz-border-radius-topleft: 3px;
+	-moz-border-radius-topright: 3px;
+	background-color: #F9F9F9;
+}
+
+fieldset.primary div.field-multilingualupload ul.tabs li {
+	margin-right: 3px;
+}
+
+fieldset.secondary div.field-multilingualupload ul.tabs li {
+	margin-left: 3px;
+}
+
+div.field-multilingualupload ul.tabs li:hover {
+	color: #444;
+}
+
+div.field-multilingualupload ul.tabs li.active {
+	border-bottom: 1px solid #F5F5F3;
+	background-color: #F5F5F3;
+	color: #888;
+	cursor: default;
+}
+
+div.field-multilingualupload div.tab-edit {
+	
+}
+
+div.field-multilingualupload div.tab-edit fieldset {
+	padding: 0;
+	margin: 0 0 5px 0;
+}
+
+div.field-multilingualupload div.tab-edit label {
+	margin: 0
+}
+
+div.field-multilingualupload div.tab-edit fieldset input.text {
+	width: 100px;
+	margin-right: 5px;
+}
