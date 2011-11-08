@@ -77,10 +77,15 @@
 			$callback = Administration::instance()->getPageCallback();
 			
 			if ( 
-				($callback['driver'] == 'publish')
-				&& ( $callback['context']['page'] == 'new' || $callback['context']['page'] == 'edit')
+				(
+					($callback['driver'] == 'publish')
+					&& ( $callback['context']['page'] == 'new' || $callback['context']['page'] == 'edit')
+				)
+				|| (
+					strpos('/extension/custompreferences/preferences/', $callback['pageroot']) !== false
+				)
 			) {
-				Administration::instance()->Page->addScriptToHead(URL . '/extensions/multilingual_upload_field/assets/multilingual_upload.content.js', 205, false);
+				Administration::instance()->Page->addScriptToHead(URL . '/extensions/multilingual_upload_field/assets/multilingual_upload.content.js', 10251841, false);
 				Administration::instance()->Page->addStylesheetToHead(URL . '/extensions/multilingual_upload_field/assets/multilingual_upload.content.css', "screen");
 			}
 		}
