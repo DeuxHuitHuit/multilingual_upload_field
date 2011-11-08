@@ -15,7 +15,9 @@ A field that allows file upload for different frontend languages.
 Thank you all other Symphony & Extensions developers for your inspirational work.<br />
 Cheers, [@Guilleme](https://github.com/6ui11em). Thanks again for UI Tabs. It's already third extension where I'm using them :)
 
-<span style="color:red">Still beta !</span><br />
+<br />
+## Still beta ! ##
+
 This means: if something breaks, please bear with me and report the bug. Thank you !
 
 # 1 About #
