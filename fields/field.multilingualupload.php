@@ -58,11 +58,11 @@
 			parent::entryDataCleanup($entry_id);
 
 			return true;
-		}		
+		}
 		
 	/*-------------------------------------------------------------------------
 		Settings:
-	-------------------------------------------------------------------------*/	
+	-------------------------------------------------------------------------*/
 		
 		public function findDefaults(&$settings){
 			if( !isset($settings['unique']) ) $settings['unique'] = 'yes';
@@ -147,7 +147,7 @@
 			
 			foreach( $langauge_codes as $language_code ){
 				$class = $language_code . ($language_code == $reference_language ? ' active' : '');
-				$li = new XMLElement('li',($all_languages[$language_code] ? $all_languages[$language_code] : __('Unknown language')));	
+				$li = new XMLElement('li',($all_languages[$language_code] ? $all_languages[$language_code] : __('Unknown language')));
 				$li->setAttribute('class', $class);
 				
 				// to use this, Multilingual Text must depend on Frontend Localisation so UX is consistent regarding Language Tabs
@@ -232,7 +232,7 @@
 		}
 		
 		public function processRawFieldData($data, &$status, $simulate = false, $entry_id = NULL) {
-			if( !is_array($data) || empty($data) ) return false;
+			if( !is_array($data) || empty($data) ) return parent::processRawFieldData($data, $status, $simulate, $entry_id, $language_code);
 			
 			$result = array();
 			$field_data = $data;
@@ -282,7 +282,7 @@
 			$data['file'] = $data['file-'.$language_code];
 			
 			return parent::prepareTableValue($data, $link, $entry_id);
-		}	
+		}
 		
 		public function getParameterPoolValue($data) {
 			return $data['file-'.FrontendLanguage::instance()->getLangaugeCode()];
@@ -294,7 +294,7 @@
 	
 			$label = Widget::Label($this->get('label').'
 			<!-- '.__('Modify just current language value').' -->
-			<input name="fields['.$this->get('element_name').'][value-{$url-language}]" type="text" /> 
+			<input name="fields['.$this->get('element_name').'][value-{$url-language}]" type="text" />
 			
 			<!-- '.__('Modify all values').' -->');
 	
@@ -317,12 +317,12 @@
 			
 			// since unix timestamp is 10 digits, the unique filename will be limited to ($crop+1+10) characters;
 			$crop  = '150';
-			return preg_replace("/(.*)(\.[^\.]+)/e", "substr('$1', 0, $crop).'-'.time().'$2'", $filename);
+			return preg_replace("/(.*)(\.[^\.]+)/e", "substr('$1', 0, $crop).'-'.$language_code.'-'.time().'$2'", $filename);
 		}
 		
 		/**
 		 * Set default columns (file, mimetype, size and meta) in database table to given language reference values.
-		 * 
+		 *
 		 * @param string $language_code
 		 * @param integer $entry_id
 		 */

@@ -3,17 +3,19 @@ jQuery(document).ready(function() {
 		var field = new MultilingualField(jQuery(this));
 	});
 	
-	// Upload fields
-	jQuery('<em>' + Symphony.Language.get('Remove File') + '</em>').appendTo('div.file:has(a)').click(function(event) {
-		var div = jQuery(this).parent(),
-			name = div.find('input').attr('name');
-		
-		// Prevent clicktrough
-		event.preventDefault();
-		
-		// Add new empty file input
-		div.empty().append('<input name="' + name + '" type="file">');
-	});
+	if( jQuery('div.file:has(a):has(em)').length == 0){
+		// Upload fields
+		jQuery('<em>' + Symphony.Language.get('Remove File') + '</em>').appendTo('div.file:has(a)').click(function(event) {
+			var div = jQuery(this).parent(),
+				name = div.find('input').attr('name');
+			
+			// Prevent clicktrough
+			event.preventDefault();
+			
+			// Add new empty file input
+			div.empty().append('<input name="' + name + '" type="file">');
+		});
+	}
 });
 
 // make sure it doesn't overlap with Multilingual Text functions
