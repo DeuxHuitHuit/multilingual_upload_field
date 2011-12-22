@@ -57,5 +57,5 @@ Frontend Localisation | Field: Multilingual Image Upload
 
 # 4 Changelog #
 
-* 0.1 beta, 2011-12-22
+* 1.0, 22 dec 2011
 	* Release 1.0
