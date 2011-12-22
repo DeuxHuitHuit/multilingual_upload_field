@@ -9,8 +9,8 @@
 		public function about() {
 			return array(
 				'name'			=> 'Field: Multilingual File Upload',
-				'version'		=> '0.1 beta',
-				'release-date'	=> '2011-11-07',
+				'version'		=> '1.0',
+				'release-date'	=> '2011-12-22',
 				'author' => array(
 					array(
 						'name' => 'Xander Group',
@@ -119,7 +119,7 @@
 		 */
 		public function dSave($context){
 			
-			$new_language_codes = FrontendLanguage::instance()->savedLanguages($context);
+			$new_language_codes = FLang::instance()->ld()->getSavedLanguages($context);
 			
 			$fields = Symphony::Database()->fetch('SELECT `field_id` FROM `tbl_fields_multilingualupload`');
 	

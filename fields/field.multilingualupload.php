@@ -27,7 +27,7 @@
 				`mimetype` varchar(50) default NULL,
 				`meta` varchar(255) default NULL,";
 
-			foreach( FrontendLanguage::instance()->languageCodes() as $language_code ){
+			foreach( FLang::instance()->ld()->languageCodes() as $language_code ){
 				$query .= "`file-{$language_code}` varchar(255) default NULL,
 				  `size-{$language_code}` int(11) unsigned NULL,
 				  `mimetype-{$language_code}` varchar(50) default NULL,
@@ -47,7 +47,7 @@
 
 		public function entryDataCleanup($entry_id, $data){
 			
-			foreach( FrontendLanguage::instance()->languageCodes() as $language_code ){
+			foreach( FLang::instance()->ld()->languageCodes() as $language_code ){
 				$file_location = WORKSPACE . '/' . ltrim($data['file-'.$language_code], '/');
 	
 				if(is_file($file_location)){
@@ -135,9 +135,9 @@
 			$container->appendChild($label);
 			
 			
-			$reference_language = FrontendLanguage::instance()->referenceLanguage();
-			$all_languages = FrontendLanguage::instance()->allLanguages();
-			$langauge_codes = FrontendLanguage::instance()->languageCodes();
+			$reference_language = FLang::instance()->referenceLanguage();
+			$all_languages = FLang::instance()->ld()->allLanguages();
+			$language_codes = FLang::instance()->ld()->languageCodes();
 			
 			
 			/* Tabs */
@@ -145,7 +145,7 @@
 			$ul = new XMLElement('ul');
 			$ul->setAttribute('class', 'tabs');
 			
-			foreach( $langauge_codes as $language_code ){
+			foreach( $language_codes as $language_code ){
 				$class = $language_code . ($language_code == $reference_language ? ' active' : '');
 				$li = new XMLElement('li',($all_languages[$language_code] ? $all_languages[$language_code] : __('Unknown language')));
 				$li->setAttribute('class', $class);
@@ -164,7 +164,7 @@
 			
 			/* Inputs */
 			
-			foreach( $langauge_codes as $language_code ){
+			foreach( $language_codes as $language_code ){
 				$div = new XMLElement('div', NULL, array('class' => 'file tab-panel tab-'.$language_code));
 				
 				$file = 'file-'.$language_code;
@@ -211,7 +211,7 @@
 			$error = self::__OK__;
 			$field_data = $data;
 			
-			foreach( FrontendLanguage::instance()->languageCodes() as $language_code ){
+			foreach( FLang::instance()->ld()->languageCodes() as $language_code ){
 				
 				$file_message = '';
 				$data = $field_data[$language_code];
@@ -237,7 +237,7 @@
 			$result = array();
 			$field_data = $data;
 			
-			foreach( FrontendLanguage::instance()->languageCodes() as $language_code ){
+			foreach( FLang::instance()->ld()->languageCodes() as $language_code ){
 				
 				$data = $field_data[$language_code];
 				
@@ -262,7 +262,7 @@
 	-------------------------------------------------------------------------*/
 
 		public function appendFormattedElement(XMLElement &$wrapper, $data){
-			$language_code = FrontendLanguage::instance()->referenceLanguage();
+			$language_code = FLang::instance()->referenceLanguage();
 			
 			$data['file'] = $data['file-'.$language_code];
 			$data['meta'] = $data['meta-'.$language_code];
@@ -275,8 +275,8 @@
 			// default to backend language
 			$language_code = Lang::get();
 			
-			if( !in_array($language_code, FrontendLanguage::instance()->languageCodes()) ){
-				$language_code = FrontendLanguage::instance()->referenceLanguage();
+			if( !in_array($language_code, FLang::instance()->ld()->languageCodes()) ){
+				$language_code = FLang::instance()->referenceLanguage();
 			}
 			
 			$data['file'] = $data['file-'.$language_code];
@@ -285,7 +285,7 @@
 		}
 		
 		public function getParameterPoolValue($data) {
-			return $data['file-'.FrontendLanguage::instance()->getLangaugeCode()];
+			return $data['file-'.FLang::instance()->ld()->languageCode()];
 		}
 		
 		public function getExampleFormMarkup(){
@@ -298,7 +298,7 @@
 			
 			<!-- '.__('Modify all values').' -->');
 	
-			foreach( FrontendLanguage::instance()->languageCodes() as $language_code ){
+			foreach( FLang::instance()->ld()->languageCodes() as $language_code ){
 				$fieldname = 'fields['.$this->get('element_name').'][value-'.$language_code.']';
 				$label->appendChild(Widget::Input($fieldname));
 			}
@@ -312,7 +312,7 @@
 		
 		private function _getUniqueFilename($filename, $language_code = null) {
 			if( empty($language_code) || !is_string($language_code) ){
-				$language_code = FrontendLanguage::instance()->referenceLanguage();
+				$language_code = FLang::instance()->referenceLanguage();
 			}
 			
 			// since unix timestamp is 10 digits, the unique filename will be limited to ($crop+1+10) characters;

@@ -3,8 +3,8 @@ Field: Multilingual File Upload
 
 A field that allows file upload for different frontend languages.
 
-* Version: 0.1 beta
-* Build Date: 2011-11-07
+* Version: 1.0
+* Build Date: 2011-12-22
 * Authors:
 	- [Xander Group](http://www.xandergroup.ro)
 	- Vlad Ghita
@@ -49,13 +49,13 @@ Get Frontend Localisation, a language driver (Language Redirect for example) and
       2.0 — 2.1.* | Not compatible
       2.2 - *     | [latest](https://github.com/vlad-ghita/multilingual_upload_field)
 
-Frontend Localisation | Multilingual File Upload
-----------------------|--------------------------
-                    * | [latest](https://github.com/vlad-ghita/multilingual_upload_field)
+Frontend Localisation | Field: Multilingual Image Upload
+----------------------|----------------
+    [0.5 beta](https://github.com/vlad-ghita/frontend_localisation) — *     | [latest](https://github.com/vlad-ghita/multilingual_image_upload)
 
 
 
 # 4 Changelog #
 
-* 0.1 beta, 2011-11-07
-	* initial release
+* 0.1 beta, 2011-12-22
+	* Release 1.0
