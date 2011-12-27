@@ -15,7 +15,7 @@
 					array(
 						'name' => 'Xander Group',
 						'email' => 'symphonycms@xandergroup.ro',
-						'website' => 'http://www.xandergroup.ro'
+						'website' => 'http://www.xanderadvertising.com'
 					),
 					array(
 						'name' => 'Vlad Ghita',

@@ -6,21 +6,16 @@ A field that allows file upload for different frontend languages.
 * Version: 1.0
 * Build Date: 2011-12-22
 * Authors:
-	- [Xander Group](http://www.xandergroup.ro)
+	- [Xander Group](http://www.xanderadvertising.com)
 	- Vlad Ghita
 * Requirements:
 	- Symphony 2.2 or above
 	- [Frontend Localisation extension](https://github.com/vlad-ghita/frontend_localisation)
 
-Thank you all other Symphony & Extensions developers for your inspirational work.<br />
-Cheers, [@Guilleme](https://github.com/6ui11em). Thanks again for UI Tabs. It's already third extension where I'm using them :)
+Thank you all other Symphony & Extensions developers for your inspirational work.
 
-<br />
-## Still beta ! ##
 
-This means: if something breaks, please bear with me and report the bug. Thank you !
-
-# 1 About #
+## 1 About ##
 
 This is a multilingual version of the classic upload field. It works the same way as a single upload field, but supports multiple languages, the same way as [Multilingual text](https://github.com/6ui11em/multilingual_field). It offers on demand unique file names and outputs to Frontend the filename for current Frontend language code.
 
@@ -31,31 +26,10 @@ Get Frontend Localisation, a language driver (Language Redirect for example) and
 
 
 
-# 2 Installation #
+## 2 Installation ##
 
 1. Upload the 'multilingual_upload_field' folder in this archive to your Symphony `extensions` folder.
 
 2. Enable it by selecting the "Field: Multilingual File Upload", choose Enable from the with-selected menu, then click Apply.
 
 3. You can now add the "Multilingual File Upload" field to your sections.
-
-
-
-
-# 3 Compatibility #
-
-         Symphony | Multilingual File Upload
-------------------|--------------------------
-      2.0 — 2.1.* | Not compatible
-      2.2 - *     | [latest](https://github.com/vlad-ghita/multilingual_upload_field)
-
-Frontend Localisation | Field: Multilingual Image Upload
-----------------------|----------------
-    [0.5 beta](https://github.com/vlad-ghita/frontend_localisation) — *     | [latest](https://github.com/vlad-ghita/multilingual_image_upload)
-
-
-
-# 4 Changelog #
-
-* 1.0, 22 dec 2011
-	* Release 1.0
