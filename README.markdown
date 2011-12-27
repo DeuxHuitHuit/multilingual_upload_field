@@ -19,11 +19,6 @@ Thank you all other Symphony & Extensions developers for your inspirational work
 
 This is a multilingual version of the classic upload field. It works the same way as a single upload field, but supports multiple languages, the same way as [Multilingual text](https://github.com/6ui11em/multilingual_field). It offers on demand unique file names and outputs to Frontend the filename for current Frontend language code.
 
-**VERY IMPORTANT**<br />
-This extension depends on [Frontend Localisation](https://github.com/vlad-ghita/frontend_localisation). From there it draws it's Frontend language information. This way I'm trying to decouple my multilingual stuff from various Language drivers out there.<br />
-Get Frontend Localisation, a language driver (Language Redirect for example) and you're good to go.
-
-
 
 
 ## 2 Installation ##
