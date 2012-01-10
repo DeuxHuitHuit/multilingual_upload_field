@@ -9,8 +9,8 @@
 		public function about() {
 			return array(
 				'name'			=> 'Field: Multilingual File Upload',
-				'version'		=> '1.0',
-				'release-date'	=> '2011-12-22',
+				'version'		=> '1.1',
+				'release-date'	=> '2012-01-10',
 				'author' => array(
 					array(
 						'name' => 'Xander Group',
@@ -44,7 +44,7 @@
 		
 		public function uninstall() {
 			Symphony::Database()->query("DROP TABLE `tbl_fields_multilingualupload`");
-		}		
+		}
 		
 		
 		
@@ -76,7 +76,7 @@
 		public function dInitaliseAdminPageHead() {
 			$callback = Administration::instance()->getPageCallback();
 			
-			if ( 
+			if (
 				(
 					($callback['driver'] == 'publish')
 					&& ( $callback['context']['page'] == 'new' || $callback['context']['page'] == 'edit')
@@ -92,7 +92,7 @@
 		
 		/**
 		 * Set options on Preferences page.
-		 * 
+		 *
 		 * @param array $context
 		 */
 		public function dAddCustomPreferenceFieldsets($context){
@@ -114,7 +114,7 @@
 		
 		/**
 		 * Save options from Preferences page
-		 * 
+		 *
 		 * @param array $context
 		 */
 		public function dSave($context){

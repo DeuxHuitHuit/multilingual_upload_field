@@ -262,7 +262,7 @@
 	-------------------------------------------------------------------------*/
 
 		public function appendFormattedElement(XMLElement &$wrapper, $data){
-			$language_code = FLang::instance()->referenceLanguage();
+			$language_code = FLang::instance()->ld()->languageCode();
 			
 			$data['file'] = $data['file-'.$language_code];
 			$data['meta'] = $data['meta-'.$language_code];
