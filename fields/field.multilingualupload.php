@@ -14,6 +14,8 @@
 			$this->_name = __('Multilingual File Upload');
 		}
 		
+		
+		
 	/*-------------------------------------------------------------------------
 		Setup:
 	-------------------------------------------------------------------------*/
@@ -36,7 +38,7 @@
 
 			$query .= "PRIMARY KEY (`id`),
 				UNIQUE KEY `entry_id` (`entry_id`)
-	    		) ENGINE=MyISAM";
+	    		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
 			return Symphony::Database()->query($query);
 		}
@@ -214,7 +216,7 @@
 			foreach( FLang::instance()->ld()->languageCodes() as $language_code ){
 				
 				$file_message = '';
-				$data = $field_data[$language_code];
+				$data = $this->_getData($field_data[$language_code]);
 				
 				if( is_array($data) && isset($data['name']) ){
 					$data['name'] = $this->_getUniqueFilename($data['name'], $language_code);
@@ -239,7 +241,7 @@
 			
 			foreach( FLang::instance()->ld()->languageCodes() as $language_code ){
 				
-				$data = $field_data[$language_code];
+				$data = $this->_getData($field_data[$language_code]);
 				
 				if( is_array($data) && isset($data['name']) ){
 					$data['name'] = $this->_getUniqueFilename($data['name'], $language_code);
@@ -318,6 +320,36 @@
 			// since unix timestamp is 10 digits, the unique filename will be limited to ($crop+1+10) characters;
 			$crop  = '150';
 			return preg_replace("/(.*)(\.[^\.]+)/e", "substr('$1', 0, $crop).'-'.$language_code.'-'.time().'$2'", $filename);
+		}
+		
+		
+		
+		/**
+		 * It is possible that data from Symphony won't come as expected associative array.
+		 *
+		 * @param array $data
+		 */
+		private function _getData($data){
+			if( is_string($data) ) return $data;
+		
+			if( !is_array($data) ) return null;
+		
+			if( array_key_exists('name', $data) ){
+		
+				if( empty($data['name']) ) return null;
+		
+				return $data;
+			}
+		
+			if( empty($data[0]) ) return null;
+		
+			return array(
+					'name' => $data[0],
+					'type' => $data[1],
+					'tmp_name' => $data[2],
+					'error' => $data[3],
+					'size' => $data[4]
+			);
 		}
 		
 		/**
