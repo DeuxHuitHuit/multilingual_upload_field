@@ -28,9 +28,14 @@
 	</dependencies>
 
 	<releases>
+		<release version="1.2" date="2012-02-01"><![CDATA[
+			* Fixed a bug with array indexes.
+		]]></release>
+
 		<release version="1.1" date="2012-01-10"><![CDATA[
 			* Fixed a bug where data was fetched in Reference Language instead of Current Language.
 		]]></release>
+
 		<release version="1.0" date="2011-12-22" min="2.2.x"><![CDATA[
 			* Initial release.
 		]]></release>

@@ -9,8 +9,8 @@
 		public function about() {
 			return array(
 				'name'			=> 'Field: Multilingual File Upload',
-				'version'		=> '1.1',
-				'release-date'	=> '2012-01-10',
+				'version'		=> '1.2',
+				'release-date'	=> '2012-02-01',
 				'author' => array(
 					array(
 						'name' => 'Xander Group',
