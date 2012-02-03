@@ -35,7 +35,8 @@
 				 `field_id` int(11) unsigned NOT NULL,
 				 `destination` varchar(255) NOT NULL,
 				 `validator` varchar(50),
-				 `unique` varchar(3),
+				 `unique` ENUM('yes','no') DEFAULT 'yes',
+				 `use_def_lang_vals` ENUM('yes','no') DEFAULT 'yes',
 				  PRIMARY KEY (`id`),
 				  KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM;"

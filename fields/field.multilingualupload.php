@@ -3,7 +3,7 @@
 	if (!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 	
 	require_once(TOOLKIT . '/fields/field.upload.php');
-	
+	require_once(EXTENSIONS . '/frontend_localisation/lib/class.FLang.php');
 	
 	
 	final class fieldMultilingualUpload extends fieldUpload {
@@ -68,6 +68,7 @@
 		
 		public function findDefaults(&$settings){
 			if( !isset($settings['unique']) ) $settings['unique'] = 'yes';
+			if( !isset($settings['use_def_lang_vals']) ) $settings['use_def_lang_vals'] = 'yes';
 		}
 		
 		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null) {
@@ -77,6 +78,7 @@
 				
 				if( $div->getAttribute('class') == 'compact' ){
 					$this->_appendUniqueCheckbox($div);
+					$this->_appendDefLangValCheckbox($div);
 					break;
 				}
 			}
@@ -98,6 +100,22 @@
 			$wrapper->appendChild($label);
 		}
 		
+		private function _appendDefLangValCheckbox(XMLElement &$wrapper) {
+					if (!$this->_required) return;
+		
+					$order = $this->get('sortorder');
+					$name = "fields[{$order}][use_def_lang_vals]";
+		
+					$label = Widget::Label();
+					$input = Widget::Input($name, 'yes', 'checkbox');
+		
+					if ($this->get('use_def_lang_vals') == 'yes') $input->setAttribute('checked', 'checked');
+		
+					$label->setValue(__('%s Use values of default language if selected language has empty values.', array($input->generate())));
+		
+					$wrapper->appendChild($label);
+				}
+		
 		public function commit(){
 			if(!Field::commit()) return false;
 
@@ -110,6 +128,7 @@
 			$settings['field_id'] = $id;
 			$settings['destination'] = $this->get('destination');
 			$settings['validator'] = ($settings['validator'] == 'custom' ? NULL : $this->get('validator'));
+			$settings['use_def_lang_vals'] = $this->get('use_def_lang_vals');
 			$settings['unique'] = $this->get('unique');
 
 			Symphony::Database()->query("DELETE FROM `tbl_fields_".$this->handle()."` WHERE `field_id` = '$id' LIMIT 1");
@@ -218,7 +237,7 @@
 				$file_message = '';
 				$data = $this->_getData($field_data[$language_code]);
 				
-				if( is_array($data) && isset($data['name']) ){
+				if($this->get('unique') == 'yes' && is_array($data) && isset($data['name']) ){
 					$data['name'] = $this->_getUniqueFilename($data['name'], $language_code);
 				}
 				
@@ -243,7 +262,7 @@
 				
 				$data = $this->_getData($field_data[$language_code]);
 				
-				if( is_array($data) && isset($data['name']) ){
+				if($this->get('unique') == 'yes' && is_array($data) && isset($data['name']) ){
 					$data['name'] = $this->_getUniqueFilename($data['name'], $language_code);
 				}
 				
@@ -269,7 +288,15 @@
 			$data['file'] = $data['file-'.$language_code];
 			$data['meta'] = $data['meta-'.$language_code];
 			$data['mimetype'] = $data['mimetype-'.$language_code];
-			
+
+			if($this->get('use_def_lang_vals') == 'yes' && $data['file'] == '') {
+				// If value is empty for this language, load value of default language
+				$language_code = FLang::instance()->referenceLanguage();
+				$data['file'] = $data['file-'.$language_code];
+				$data['meta'] = $data['meta-'.$language_code];
+				$data['mimetype'] = $data['mimetype-'.$language_code];
+			}
+						
 			parent::appendFormattedElement($wrapper, $data);
 		}
 		
@@ -282,12 +309,26 @@
 			}
 			
 			$data['file'] = $data['file-'.$language_code];
+			if($this->get('use_def_lang_vals') == 'yes' && $data['file'] == '') {
+				// If value is empty for this language, load value of default language
+				$language_code = FLang::instance()->referenceLanguage();
+				$data['file'] = $data['file-'.$language_code];
+			}
+			
 			
 			return parent::prepareTableValue($data, $link, $entry_id);
 		}
 		
 		public function getParameterPoolValue($data) {
-			return $data['file-'.FLang::instance()->ld()->languageCode()];
+			$file = $data['file-'.FLang::instance()->ld()->languageCode()];
+			
+			if($this->get('use_def_lang_vals') == 'yes' && $file == '') {
+				// If value is empty for this language, load value of default language
+				$file = $data['file-'.FLang::instance()->referenceLanguage()];
+			}
+		
+			return $file;
+			
 		}
 		
 		public function getExampleFormMarkup(){
@@ -319,7 +360,7 @@
 			
 			// since unix timestamp is 10 digits, the unique filename will be limited to ($crop+1+10) characters;
 			$crop  = '150';
-			return preg_replace("/(.*)(\.[^\.]+)/e", "substr('$1', 0, $crop).'-'.$language_code.'-'.time().'$2'", $filename);
+			return preg_replace("/(.*)(\.[^\.]+)/e", "substr('$1', 0, $crop).'-'.$language_code.'$2'", $filename);
 		}
 		
 		
