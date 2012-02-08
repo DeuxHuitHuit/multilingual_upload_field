@@ -4,7 +4,7 @@ Field: Multilingual File Upload
 A field that allows file upload for different frontend languages.
 
 * Version: 1.2
-* Build Date: 2012-02-01
+* Build Date: 2012-02-08
 * Authors:
 	- [Xander Group](http://www.xanderadvertising.com)
 	- Vlad Ghita
@@ -15,9 +15,13 @@ A field that allows file upload for different frontend languages.
 Thank you all other Symphony & Extensions developers for your inspirational work.
 
 
+
 ## 1 About ##
 
-This is a multilingual version of the classic upload field. It works the same way as a single upload field, but supports multiple languages, the same way as [Multilingual text](https://github.com/6ui11em/multilingual_field). It offers on demand unique file names and outputs to Frontend the filename for current Frontend language code.
+This is the multilingual version of the classic upload field.
+
+- optional, it will create unique filenames
+- optional, it will return value from reference language
 
 
 
