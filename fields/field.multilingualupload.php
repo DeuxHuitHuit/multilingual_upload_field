@@ -144,7 +144,7 @@
 				}
 			}
 		
-			parent::entryDataCleanup($entry_id);
+			parent::entryDataCleanup($entry_id, $data);
 		
 			return true;
 		}
