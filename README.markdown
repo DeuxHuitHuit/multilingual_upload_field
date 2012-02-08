@@ -3,7 +3,7 @@ Field: Multilingual File Upload
 
 A field that allows file upload for different frontend languages.
 
-* Version: 1.2
+* Version: 1.3
 * Build Date: 2012-02-08
 * Authors:
 	- [Xander Group](http://www.xanderadvertising.com)

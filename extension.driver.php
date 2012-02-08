@@ -14,7 +14,7 @@
 		public function about() {
 			return array(
 				'name' => MULTILINGUAL_UPLOAD_FIELD_NAME,
-				'version' => '1.2',
+				'version' => '1.3',
 				'release-date' => '2012-02-08',
 				'author' => array(
 					array(
