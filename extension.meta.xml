@@ -28,6 +28,10 @@
 	</dependencies>
 
 	<releases>
+		<release version="1.5" date="2012-05-14"><![CDATA[
+			* Frontend Localisation 1.5 compatibility.
+		]]></release>
+
 		<release version="1.4" date="2012-05-11" min="2.3"><![CDATA[
 			* Updated for Symphony 2.3.
 		]]></release>

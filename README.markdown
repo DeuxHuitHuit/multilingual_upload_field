@@ -3,13 +3,13 @@ Field: Multilingual File Upload
 
 A field that allows file upload for different frontend languages.
 
-* Version: 1.4
-* Build Date: 2012-05-11
+* Version: 1.5
+* Build Date: 2012-05-14
 * Authors:
 	- Vlad Ghita
 * Requirements:
 	- Symphony 2.3
-	- [Frontend Localisation 1.4](https://github.com/vlad-ghita/frontend_localisation)
+	- [Frontend Localisation 1.5](https://github.com/vlad-ghita/frontend_localisation)
 
 
 
