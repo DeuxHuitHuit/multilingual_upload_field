@@ -4,15 +4,16 @@
 
 
 
-	define_safe(MUF_NAME, 'Field: Multilingual File Upload');
+	define_safe(MUF_NAME, 'Field: Multilingual Upload');
 	define_safe(MUF_GROUP, 'multilingual_upload_field');
 
 
 
-	class extension_multilingual_upload_field extends Extension
+	class Extension_Multilingual_Upload_Field extends Extension
 	{
+		const FIELD_TABLE = 'tbl_fields_multilingual_upload';
 
-		protected $assets_loaded = false;
+		protected static $assets_loaded = false;
 
 
 
@@ -21,8 +22,8 @@
 		/*------------------------------------------------------------------------------------------------*/
 
 		public function install(){
-			return Symphony::Database()->query("
-				CREATE TABLE `tbl_fields_multilingualupload` (
+			return Symphony::Database()->query(sprintf(
+				"CREATE TABLE `%s` (
 					`id` int(11) unsigned NOT NULL auto_increment,
 					`field_id` int(11) unsigned NOT NULL,
 					`destination` varchar(255) NOT NULL,
@@ -31,8 +32,9 @@
 					`def_ref_lang` enum('yes','no') default 'yes',
 					PRIMARY KEY (`id`),
 					KEY `field_id` (`field_id`)
-				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-			");
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
+				self::FIELD_TABLE
+			));
 		}
 
 		public function update($previous_version){
@@ -41,11 +43,28 @@
 				Symphony::Database()->query("UPDATE `tbl_fields_multilingualupload` SET `def_ref_lang` = 'no'");
 			}
 
+			if( version_compare($previous_version, '1.6', '<') ){
+				Symphony::Database()->query(sprintf(
+					"RENAME TABLE `tbl_fields_multilingualupload` TO `%s`;",
+					self::FIELD_TABLE
+				));
+			}
+
 			return true;
 		}
 
 		public function uninstall(){
-			Symphony::Database()->query("DROP TABLE `tbl_fields_multilingualupload`");
+			try{
+				Symphony::Database()->query(sprintf(
+					"DROP TABLE `%s`",
+					self::FIELD_TABLE
+				));
+			}
+			catch( DatabaseException $dbe ){
+				// table deosn't exist
+			}
+
+			return true;
 		}
 
 
@@ -99,52 +118,67 @@
 		 * @param array $context
 		 */
 		public function dFLSavePreferences($context){
-			$fields = Symphony::Database()->fetch('SELECT `field_id` FROM `tbl_fields_multilingualupload`');
+			$fields = Symphony::Database()->fetch(sprintf(
+				'SELECT `field_id` FROM `%s`',
+				self::FIELD_TABLE
+			));
 
-			if( $fields ){
+			if( is_array($fields) && !empty($fields) ){
+				$consolidate = $context['context']['settings'][MUF_GROUP]['consolidate'];
+
 				// Foreach field check multilanguage values foreach language
 				foreach( $fields as $field ){
 					$entries_table = 'tbl_entries_data_'.$field["field_id"];
 
 					try{
-						$show_columns = Symphony::Database()->fetch("SHOW COLUMNS FROM `{$entries_table}` LIKE 'file-%';");
+						$show_columns = Symphony::Database()->fetch(sprintf(
+							"SHOW COLUMNS FROM `%s` LIKE 'file-%%'",
+							$entries_table
+						));
 					}
 					catch( DatabaseException $dbe ){
 						// Field doesn't exist. Better remove it's settings
-						Symphony::Database()->query("DELETE FROM `tbl_fields_multilingualupload` WHERE `field_id` = {$field["field_id"]};");
+						Symphony::Database()->query(sprintf(
+							"DELETE FROM `%s` WHERE `field_id` = '%s';",
+							self::FIELD_TABLE, $field["field_id"]
+						));
 						continue;
 					}
 
 					$columns = array();
 
-					if( $show_columns ){
+					// Remove obsolete fields
+					if( is_array($show_columns) && !empty($show_columns) )
+
 						foreach( $show_columns as $column ){
 							$lc = substr($column['Field'], strlen($column['Field']) - 2);
 
 							// If not consolidate option AND column lang_code not in supported languages codes -> Drop Column
-							if( ($_POST['settings'][MUF_GROUP]['consolidate'] !== 'yes') && !in_array($lc, $context['new_langs']) ){
-								Symphony::Database()->query("ALTER TABLE  `{$entries_table}` DROP COLUMN `file-{$lc}`");
-								Symphony::Database()->query("ALTER TABLE  `{$entries_table}` DROP COLUMN `size-{$lc}`");
-								Symphony::Database()->query("ALTER TABLE  `{$entries_table}` DROP COLUMN `mimetype-{$lc}`");
-								Symphony::Database()->query("ALTER TABLE  `{$entries_table}` DROP COLUMN `meta-{$lc}`");
-							} else{
+							if( ($consolidate !== 'yes') && !in_array($lc, $context['new_langs']) )
+								Symphony::Database()->query(sprintf(
+									'ALTER TABLE `%1$s`
+										DROP COLUMN `file-%2$s`,
+										DROP COLUMN `size-%2$s`,
+										DROP COLUMN `mimetype-%2$s`,
+										DROP COLUMN `meta-%2$s`;',
+									$entries_table, $lc
+								));
+							else
 								$columns[] = $column['Field'];
-							}
 						}
-					}
 
 					// Add new fields
-					foreach( $context['new_langs'] as $lc ){
-						// If column lang_code dosen't exist in the laguange drop columns
+					foreach( $context['new_langs'] as $lc )
 
-						if( !in_array('file-'.$lc, $columns) ){
-							Symphony::Database()->query("ALTER TABLE  `{$entries_table}` ADD COLUMN `file-{$lc}` varchar(255) default NULL");
-							Symphony::Database()->query("ALTER TABLE  `{$entries_table}` ADD COLUMN `size-{$lc}` int(11) unsigned NULL");
-							Symphony::Database()->query("ALTER TABLE  `{$entries_table}` ADD COLUMN `mimetype-{$lc}` varchar(50) default NULL");
-							Symphony::Database()->query("ALTER TABLE  `{$entries_table}` ADD COLUMN `meta-{$lc}` varchar(255) default NULL");
-						}
-					}
-
+						if( !in_array('file-'.$lc, $columns) )
+							Symphony::Database()->query(sprintf(
+								'ALTER TABLE `%1$s`
+									ADD COLUMN `file-%2$s` varchar(255) default NULL,
+									ADD COLUMN `size-%2$s` int(11) unsigned NULL,
+									ADD COLUMN `mimetype-%2$s` varchar(50) default NULL,
+									ADD COLUMN `meta-%2$s` varchar(255) default NULL;',
+								$entries_table, $lc
+							));
 				}
 			}
 		}
@@ -152,21 +186,20 @@
 
 
 		/*------------------------------------------------------------------------------------------------*/
-		/*  Utilities  */
+		/*  Public utilities  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function appendAssets(){
-			if( $this->assets_loaded === false ){
-				$this->assets_loaded = true;
+		public static function appendAssets(){
+			if( self::$assets_loaded === false
+				&& class_exists('Administration')
+				&& Administration::instance() instanceof Administration
+				&& Administration::instance()->Page instanceof HTMLPage ){
+
+				self::$assets_loaded = true;
 
 				$page = Administration::instance()->Page;
 
 				$page->addScriptToHead(URL.'/extensions/'.MUF_GROUP.'/assets/'.MUF_GROUP.'.publish.js', null, false);
-
-				// multilingual stuff
-				$fl_assets = URL.'/extensions/frontend_localisation/assets/frontend_localisation.multilingual_tabs';
-				$page->addStylesheetToHead($fl_assets.'.css', 'screen', null, false);
-				$page->addScriptToHead($fl_assets.'_init.js', null, false);
 			}
 		}
 	}
