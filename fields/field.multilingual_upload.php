@@ -109,7 +109,7 @@
 					`unique` = '%s'
 				WHERE
 					`field_id` = '%s';",
-				$this->handle(), $this->get('def_ref_lang'), $this->get('unique'), $this->get('id')
+				$this->handle(), $this->get('def_ref_lang') === 'yes' ? 'yes' : 'no', $this->get('unique'), $this->get('id')
 			));
 		}
 
@@ -347,6 +347,14 @@
 
 
 		/*------------------------------------------------------------------------------------------------*/
+		/*  Field schema  */
+		/*------------------------------------------------------------------------------------------------*/
+
+		public function appendFieldSchema($f){}
+
+
+
+		/*------------------------------------------------------------------------------------------------*/
 		/*  In-house  */
 		/*------------------------------------------------------------------------------------------------*/
 
@@ -366,7 +374,6 @@
 
 			return $filename;
 		}
-
 
 		/**
 		 * It is possible that data from Symphony won't come as expected associative array.
