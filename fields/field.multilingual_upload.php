@@ -163,8 +163,10 @@
 				$file = 'file-'.$lc;
 
 				if( $data[$file] ){
+					$filePath = $this->get('destination').'/'.$data[$file];
+					
 					$div->appendChild(
-						Widget::Anchor('/workspace'.$data[$file], URL.'/workspace'.$data[$file])
+						Widget::Anchor($filePath, URL.$filePath)
 					);
 				}
 
