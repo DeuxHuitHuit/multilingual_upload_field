@@ -27,7 +27,7 @@
 					`id` int(11) unsigned NOT NULL auto_increment,
 					`field_id` int(11) unsigned NOT NULL,
 					`destination` varchar(255) NOT NULL,
-					`validator` varchar(50),
+					`validator` varchar(255),
 					`unique` enum('yes','no') default 'yes',
 					`def_ref_lang` enum('yes','no') default 'yes',
 					PRIMARY KEY (`id`),
@@ -48,6 +48,12 @@
 					"RENAME TABLE `tbl_fields_multilingualupload` TO `%s`;",
 					self::FIELD_TABLE
 				));
+			}
+
+			if( version_compare($previous_version, '1.6.1', '<') ){
+				Symphony::Database()->query(
+					"ALTER TABLE `tbl_fields_multilingualupload` MODIFY `validator` varchar(255);"
+				);
 			}
 
 			return true;
