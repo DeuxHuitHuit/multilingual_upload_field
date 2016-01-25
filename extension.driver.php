@@ -51,9 +51,10 @@
 			}
 
 			if( version_compare($previous_version, '1.6.1', '<') ){
-				Symphony::Database()->query(
-					"ALTER TABLE `tbl_fields_multilingualupload` MODIFY `validator` varchar(255);"
-				);
+				Symphony::Database()->query(sprintf(
+					"RENAME TABLE `tbl_fields_multilingualupload` TO `%s`;",
+					self::FIELD_TABLE
+				));
 			}
 
 			return true;
