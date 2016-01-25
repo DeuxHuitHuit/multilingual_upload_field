@@ -28,6 +28,10 @@
 	</dependencies>
 
 	<releases>
+		<release version="1.6.2" date="2016-01-25" min="2.3.3" max="2.6.x"><![CDATA[
+			* Fix broken 1.6.1 update code
+		]]></release>
+		
 		<release version="1.6.1" date="2015-12-16" min="2.3.3" max="2.6.x"><![CDATA[
 			* Set `validator` to varchar(255)
 		]]></release>
