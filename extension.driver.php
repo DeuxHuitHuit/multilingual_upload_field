@@ -15,21 +15,21 @@
 
 		protected static $assets_loaded = false;
 
-
-
 		/*------------------------------------------------------------------------------------------------*/
 		/*  Installation  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function install(){
+		public function install()
+		{
 			return Symphony::Database()->query(sprintf(
 				"CREATE TABLE `%s` (
 					`id` int(11) unsigned NOT NULL auto_increment,
 					`field_id` int(11) unsigned NOT NULL,
-					`destination` varchar(255) NOT NULL,
-					`validator` varchar(255),
-					`unique` enum('yes','no') default 'yes',
-					`def_ref_lang` enum('yes','no') default 'yes',
+					`destination` VARCHAR(255) NOT NULL,
+					`validator` VARCHAR(255),
+					`unique` enum('yes','no') DEFAULT 'yes',
+					`default_main_lang` enum('yes','no') NOT NULL DEFAULT 'no',
+					`required_languages` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
 					PRIMARY KEY (`id`),
 					KEY `field_id` (`field_id`)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
@@ -37,22 +37,32 @@
 			));
 		}
 
-		public function update($previous_version){
-			if( version_compare($previous_version, '1.2', '<') ){
+		public function update($previous_version)
+		{
+			if(version_compare($previous_version, '1.2', '<')) {
 				Symphony::Database()->query("ALTER TABLE `tbl_fields_multilingualupload` ADD COLUMN `def_ref_lang` ENUM('yes','no') DEFAULT 'yes'");
 				Symphony::Database()->query("UPDATE `tbl_fields_multilingualupload` SET `def_ref_lang` = 'no'");
 			}
 
-			if( version_compare($previous_version, '1.6', '<') ){
+			if(version_compare($previous_version, '1.6', '<')) {
 				Symphony::Database()->query(sprintf(
 					"RENAME TABLE `tbl_fields_multilingualupload` TO `%s`;",
 					self::FIELD_TABLE
 				));
 			}
 			
-			if( version_compare($previous_version, '1.6.1', '<') ){
+			if(version_compare($previous_version, '1.6.1', '<')) {
 				Symphony::Database()->query(sprintf(
-					"ALTER TABLE `%s` MODIFY `validator` varchar(255);",
+					"ALTER TABLE `%s` MODIFY `validator` VARCHAR(255);",
+					self::FIELD_TABLE
+				));
+			}
+
+			if (version_compare($previous_version, '2.0.0', '<')) {
+				Symphony::Database()->query(sprintf(
+					"ALTER TABLE `%s`
+						CHANGE COLUMN `def_ref_lang` `default_main_lang` ENUM('yes', 'no') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
+						ADD `required_languages` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL;",
 					self::FIELD_TABLE
 				));
 			}
@@ -60,7 +70,8 @@
 			return true;
 		}
 
-		public function uninstall(){
+		public function uninstall()
+		{
 			try{
 				Symphony::Database()->query(sprintf(
 					"DROP TABLE `%s`",

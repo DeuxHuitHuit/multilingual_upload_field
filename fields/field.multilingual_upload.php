@@ -16,7 +16,7 @@
 		public function __construct(){
 			parent::__construct();
 
-			$this->_name = __('Multilingual Upload');
+			$this->_name = __('Multilingual File Upload');
 		}
 
 		public function createTable(){
@@ -52,59 +52,148 @@
 		/*  Settings  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function findDefaults(&$settings){
-			if( !isset($settings['unique']) ){
+		public function findDefaults(&$settings)
+		{
+			if ($settings['unique'] != 'no') {
 				$settings['unique'] = 'yes';
 			}
 
-			if( $settings['def_ref_lang'] != 'yes' ){
-				$settings['def_ref_lang'] = 'no';
+			if ($settings['default_main_lang'] != 'yes') {
+				$settings['default_main_lang'] = 'no';
 			}
 
 			return parent::findDefaults($settings);
 		}
 
-		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null){
-			parent::displaySettingsPanel($wrapper, $errors);
+		public function set($field, $value)
+		{
+			if ($field == 'required_languages' && !is_array($value)) {
+				$value = array_filter(explode(',', $value));
+			}
 
-			$div = New XMLElement('div', null, array('class' => 'two columns'));
-
-			$this->_appendUniqueCheckbox($div);
-			$this->_appendDefLangValCheckbox($div);
-
-			$wrapper->appendChild($div);
+			$this->_settings[$field] = $value;
 		}
 
-		private function _appendUniqueCheckbox(XMLElement &$wrapper){
+		public function get($field = null)
+		{
+			if ($field == 'required_languages') {
+				return (array) parent::get($field);
+			}
+
+			return parent::get($field);
+		}
+
+		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null)
+		{
+			parent::displaySettingsPanel($wrapper, $errors);
+
+			$last_div_pos = $wrapper->getNumberOfChildren() - 1;
+
+			$two_columns = new XMLElement('div', null, array('class' => 'two columns'));
+
+			$this->appendShowColumnCheckbox($two_columns);
+			$this->appendUniqueCheckbox($two_columns);
+			$this->appendDefLangValCheckbox($two_columns);
+			$wrapper->replaceChildAt($last_div_pos, $two_columns);
+
+			$two_columns = new XMLElement('div', null, array('class' => 'two columns'));
+			$this->appendRequiredLanguages($two_columns);
+			$wrapper->appendChild($two_columns);
+		}
+
+		protected function appendUniqueCheckbox(XMLElement &$wrapper)
+		{
 			$label = Widget::Label(null, null, 'column');
 			$input = Widget::Input("fields[{$this->get('sortorder')}][unique]", 'yes', 'checkbox');
-			if( $this->get('unique') == 'yes' ) $input->setAttribute('checked', 'checked');
+			if ($this->get('unique') == 'yes') {
+				$input->setAttribute('checked', 'checked');
+			}
 			$label->setValue(__('%s Create unique filenames.', array($input->generate())));
 
 			$wrapper->appendChild($label);
 		}
 
-		private function _appendDefLangValCheckbox(XMLElement &$wrapper){
+		protected function appendDefLangValCheckbox(XMLElement &$wrapper)
+		{
 			$label = Widget::Label(null, null, 'column');
-			$input = Widget::Input("fields[{$this->get('sortorder')}][def_ref_lang]", 'yes', 'checkbox');
-			if( $this->get('def_ref_lang') == 'yes' ) $input->setAttribute('checked', 'checked');
+			$input = Widget::Input("fields[{$this->get('sortorder')}][default_main_lang]", 'yes', 'checkbox');
+			if ($this->get('default_main_lang') == 'yes') {
+				$input->setAttribute('checked', 'checked');
+			}
 			$label->setValue(__('%s Use value from main language if selected language has empty value.', array($input->generate())));
 
 			$wrapper->appendChild($label);
 		}
 
-		public function commit(){
-			if( !parent::commit() ) return false;
+		protected function appendRequiredLanguages(XMLElement &$wrapper)
+		{
+			$name = "fields[{$this->get('sortorder')}][required_languages][]";
+
+			$required_languages = $this->get('required_languages');
+
+			$displayed_languages = FLang::getLangs();
+
+			if (($key = array_search(FLang::getMainLang(), $displayed_languages)) !== false) {
+				unset($displayed_languages[$key]);
+			}
+
+			$options = Extension_Languages::findOptions($required_languages, $displayed_languages);
+
+			array_unshift(
+				$options,
+				array('all', $this->get('required') == 'yes', __('All')),
+				array('main', in_array('main', $required_languages), __('Main language'))
+			);
+
+			$label = Widget::Label(__('Required languages'));
+			$label->setAttribute('class', 'column');
+			$label->appendChild(
+				Widget::Select($name, $options, array('multiple' => 'multiple'))
+			);
+
+			$wrapper->appendChild($label);
+		}
+
+		public function commit()
+		{
+			$required_languages = $this->get('required_languages');
+
+			// all are required
+			if (in_array('all', $required_languages)) {
+				$this->set('required', 'yes');
+				$required_languages = array('all');
+			}
+			else {
+				$this->set('required', 'no');
+			}
+
+			// if main is required, remove the actual language code
+			if (in_array('main', $required_languages)) {
+				if (($key = array_search(FLang::getMainLang(), $required_languages)) !== false) {
+					unset($required_languages[$key]);
+				}
+			}
+
+			$this->set('required_languages', $required_languages);
+
+			if (!parent::commit()) {
+				return false;
+			}
 
 			return Symphony::Database()->query(sprintf("
 				UPDATE
 					`tbl_fields_%s`
 				SET
-					`def_ref_lang` = '%s',
+					`default_main_lang` = '%s',
+					`required_languages` = '%s',
 					`unique` = '%s'
 				WHERE
 					`field_id` = '%s';",
-				$this->handle(), $this->get('def_ref_lang') === 'yes' ? 'yes' : 'no', $this->get('unique'), $this->get('id')
+				$this->handle(),
+				$this->get('default_main_lang') === 'yes' ? 'yes' : 'no',
+				implode(',', $this->get('required_languages')),
+				$this->get('unique'),
+				$this->get('id')
 			));
 		}
 
@@ -131,28 +220,27 @@
 			/*------------------------------------------------------------------------------------------------*/
 
 			$label = Widget::Label($this->get('label'), null, 'file');
-			if( $this->get('required') != 'yes' ) $label->appendChild(new XMLElement('i', __('Optional')));
+			if ($this->get('required') != 'yes') {
+				$label->appendChild(new XMLElement('i', __('Optional')));
+			}
 			$container->appendChild($label);
-
 
 			/*------------------------------------------------------------------------------------------------*/
 			/*  Tabs  */
 			/*------------------------------------------------------------------------------------------------*/
 
 			$ul = new XMLElement('ul', null, array('class' => 'tabs'));
-			foreach( $langs as $lc ){
+			foreach ($langs as $lc) {
 				$li = new XMLElement('li', $all_langs[$lc], array('class' => $lc));
 				$lc === $main_lang ? $ul->prependChild($li) : $ul->appendChild($li);
 			}
-
 			$container->appendChild($ul);
-
 
 			/*------------------------------------------------------------------------------------------------*/
 			/*  Panels  */
 			/*------------------------------------------------------------------------------------------------*/
 
-			foreach( $langs as $lc ){
+			foreach ($langs as $lc) {
 				$div = new XMLElement('div', NULL, array('class' => 'file tab-panel tab-'.$lc));
 
 				$file = 'file-'.$lc;
@@ -181,17 +269,17 @@
 			/*  Errors  */
 			/*------------------------------------------------------------------------------------------------*/
 
-			if( !is_dir(DOCROOT.$this->get('destination').'/') ){
+			if (!is_dir(DOCROOT.$this->get('destination').'/')) {
 				$flagWithError = __('The destination directory, <code>%s</code>, does not exist.', array($this->get('destination')));
 			}
-			elseif( !$flagWithError && !is_writable(DOCROOT.$this->get('destination').'/') ){
+			else if (!$flagWithError && !is_writable(DOCROOT.$this->get('destination').'/')) {
 				$flagWithError = __('Destination folder, <code>%s</code>, is not writable. Please check permissions.', array($this->get('destination')));
 			}
 
-			if( $flagWithError != NULL ){
+			if ($flagWithError != NULL ) {
 				$wrapper->appendChild(Widget::Error($container, $flagWithError));
 			}
-			else{
+			else {
 				$wrapper->appendChild($container);
 			}
 		}
@@ -206,102 +294,141 @@
 			$error = self::__OK__;
 			$field_data = $data;
 			$all_langs = FLang::getAllLangs();
+			$required_languages = $this->getRequiredLanguages();
+			$original_required  = $this->get('required');
 
-			foreach( FLang::getLangs() as $lc ){
+			foreach (FLang::getLangs() as $lc) {
+				$this->set('required', in_array($lc, $required_languages) ? 'yes' : 'no');
 
 				$file_message = '';
 				$data = $this->_getData($field_data[$lc]);
 
-				if( is_array($data) && isset($data['name']) ){
+				if (is_array($data) && isset($data['name'])) {
 					$data['name'] = $this->getUniqueFilename($data['name'], $lc, true);
 				}
 
 				$status = parent::checkPostFieldData($data, $file_message, $entry_id);
 
 				// if one language fails, all fail
-				if( $status != self::__OK__ ){
-					$message .= "<br />{$all_langs[$lc]}: {$file_message}";
+				if ($status != self::__OK__) {
+					$local_msg = "<br />[$lc] {$all_langs[$lc]}: {$file_message}";
+
+					if ($lc === $main_lang) {
+						$message = $local_msg . $message;
+					}
+					else {
+						$message = $message . $local_msg;
+					}
+
 					$error = self::__ERROR__;
 				}
 			}
+
+			$this->set('required', $original_required);
 
 			return $error;
 		}
 
 		public function processRawFieldData($data, &$status, &$message, $simulate = false, $entry_id = NULL){
-			if( !is_array($data) || empty($data) ) return parent::processRawFieldData($data, $status, $message, $simulate, $entry_id);
+			if(!is_array($data) || empty($data)) {
+				return parent::processRawFieldData($data, $status, $message, $simulate, $entry_id);
+			}
 
+			$status = self::__OK__;
 			$result = array();
 			$field_data = $data;
 
-			foreach( FLang::getLangs() as $lc ){
+			$missing_langs = array();
+
+			foreach (FLang::getLangs() as $lc) {
+
+				if (!isset($field_data[$lc])) {
+					$missing_langs[] = $lc;
+					continue;
+				}
 
 				$data = $this->_getData($field_data[$lc]);
 
-				if( is_array($data) && isset($data['name']) ){
+				if (is_array($data) && isset($data['name'])) {
 					$data['name'] = $this->getUniqueFilename($data['name'], $lc);
 				}
 
-				$this->_fakeDefaultFile($lc, $entry_id);
+				$file_result = parent::processRawFieldData($data, $status, $message, $simulate, $entry_id);
 
-				$file_result = parent::processRawFieldData($data, $status, $message, $simulate, $entry_id, $lc);
+				if (FLang::getMainLang() == $lc) {
+					$result = array_merge($result, array(
+						'file'     => $data["file-$lc"],
+						'size'     => $data["size-$lc"],
+						'meta'     => $data["meta-$lc"],
+						'mimetype' => $data["mimetype-$lc"],
+					));
+				}
 
-				if( is_array($file_result) ){
-					foreach( $file_result as $key => $value ){
+				if (is_array($file_result)) {
+					foreach ($file_result as $key => $value) {
 						$result[$key.'-'.$lc] = $value;
 					}
+				}
+			}
+
+			if (!empty($missing_langs) && $entry_id) {
+				$crt_data = $this->getCurrentData($entry_id);
+
+				foreach ($missing_langs as $lc) {
+					$result = array_merge($result, array(
+						"file-$lc"     => $crt_data["file-$lc"],
+						"size-$lc"     => $crt_data["size-$lc"],
+						"meta-$lc"     => $crt_data["meta-$lc"],
+						"mimetype-$lc" => $crt_data["mimetype-$lc"],
+					));
 				}
 			}
 
 			return $result;
 		}
 
+		protected function getCurrentData($entry_id) {
+			$query = sprintf(
+				'SELECT * FROM `tbl_entries_data_%d`
+				WHERE `entry_id` = %d',
+				$this->get('id'),
+				$entry_id
+			);
 
+			return Symphony::Database()->fetchRow(0, $query);
+		}
 
 		/*------------------------------------------------------------------------------------------------*/
 		/*  Output  */
 		/*------------------------------------------------------------------------------------------------*/
 
 		public function appendFormattedElement(XMLElement &$wrapper, $data){
-			$lang_code = FLang::getLangCode();
-
-			// If value is empty for this language, load value from main language
-			if( $this->get('def_ref_lang') == 'yes' && $data['file-'.$lang_code] == '' ){
-				$lang_code = FLang::getMainLang();
-			}
-
-			$data['file'] = $data['file-'.$lang_code];
-			$data['meta'] = $data['meta-'.$lang_code];
-			$data['mimetype'] = $data['mimetype-'.$lang_code];
-
+			$lang_code = $this->getLang($data);
+			$data['file'] = $data["file-$lang_code"];
+			$data['size'] = $data["size-$lang_code"];
+			$data['meta'] = $data["meta-$lang_code"];
+			$data['mimetype'] = $data["mimetype-$lang_code"];
 			parent::appendFormattedElement($wrapper, $data);
 		}
 
+		// @todo: remove and fallback to default (Symphony 2.5 only?)
 		public function prepareTableValue($data, XMLElement $link = NULL, $entry_id = null){
-			// default to backend language
-			$lang_code = Lang::get();
-
-			if(
-				!FLang::validateLangCode($lang_code) // language not supported
-				|| ($this->get('def_ref_lang') === 'yes' && $data['file-'.$lang_code] === '') // or value is empty for this language
-			){
-				$lang_code = FLang::getMainLang();
-			}
-
-			$data['file'] = $data['file-'.$lang_code];
-
+			$lang_code = $this->getLang($data);
+			$data['file'] = $data["file-$lang_code"];
+			$data['size'] = $data["size-$lang_code"];
+			$data['meta'] = $data["meta-$lang_code"];
+			$data['mimetype'] = $data["mimetype-$lang_code"];
 			return parent::prepareTableValue($data, $link, $entry_id);
 		}
 
-		public function getParameterPoolValue($data){
-			$lang_code = FLang::getLangCode();
+		public function prepareTextValue($data, $entry_id = null) {
+			$lc = $this->getLang($data);
+			return strip_tags($data["file-$lc"]);
+		}
 
-			// If value is empty for this language, load value from main language
-			if( $this->get('def_ref_lang') == 'yes' && $data['file-'.$lang_code] == '' ){
-				$lang_code = FLang::getMainLang();
-			}
-
-			return $data['file-'.$lang_code];
+		public function getParameterPoolValue($data) {
+			$lc = $this->getLang();
+			return $data["file-$lc"];
 		}
 
 		public function getExampleFormMarkup(){
@@ -326,8 +453,8 @@
 		/*  Utilities  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function entryDataCleanup($entry_id, $data){
-
+		public function entryDataCleanup($entry_id, $data)
+		{
 			foreach( FLang::getLangs() as $lc ){
 				$file_location = WORKSPACE.'/'.ltrim($data['file-'.$lc], '/');
 
@@ -341,13 +468,68 @@
 			return true;
 		}
 
+		/**
+		 * Returns required languages for this field.
+		 */
+		public function getRequiredLanguages()
+		{
+			$required = $this->get('required_languages');
+
+			$languages = FLang::getLangs();
+
+			if (in_array('all', $required)) {
+				return $languages;
+			}
+
+			if (($key = array_search('main', $required)) !== false) {
+				unset($required[$key]);
+
+				$required[] = FLang::getMainLang();
+				$required   = array_unique($required);
+			}
+
+			return $required;
+		}
+
+		protected function getLang($data = null)
+		{
+			$required_languages = $this->getRequiredLanguages();
+			$lc = Lang::get();
+
+			if (!FLang::validateLangCode($lc)) {
+				$lc = FLang::getLangCode();
+			}
+
+			// If value is empty for this language, load value from main language
+			if (is_array($data) && $this->get('default_main_lang') == 'yes' && empty($data["value-$lc"])) {
+				$lc = FLang::getMainLang();
+			}
+
+			// If value if still empty try to use the value from the first
+			// required language
+			if (is_array($data) && empty($data["value-$lc"]) && count($required_languages) > 0) {
+				$lc = $required_languages[0];
+			}
+
+			return $lc;
+		}
 
 
 		/*------------------------------------------------------------------------------------------------*/
 		/*  Field schema  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function appendFieldSchema($f){}
+		public function appendFieldSchema(XMLElement $f)
+		{
+			$required_languages = $this->getRequiredLanguages();
+			$required = new XMLElement('required-languages');
+
+			foreach ($required_languages as $lc) {
+				$required->appendChild(new XMLElement('item', $lc));
+			}
+
+			$f->appendChild($required);
+		}
 
 
 
@@ -395,36 +577,6 @@
 				'error' => $data[3],
 				'size' => $data[4]
 			);
-		}
-
-		/**
-		 * Set default columns (file, mimetype, size and meta) in database table to given language reference values.
-		 *
-		 * @param string  $lang_code
-		 * @param integer $entry_id
-		 */
-		private function _fakeDefaultFile($lang_code, $entry_id){
-			$row = array();
-
-			try{
-				$row = Symphony::Database()->fetchRow(0, sprintf(
-					"SELECT `file-{$lang_code}`, `mimetype-{$lang_code}`, `size-{$lang_code}`, `meta-{$lang_code}` FROM `tbl_entries_data_%d` WHERE `entry_id` = %d",
-					$this->get('id'),
-					$entry_id
-				));
-			} catch( Exception $e ){
-			}
-
-			$fields['file'] = $row['file-'.$lang_code];
-			$fields['size'] = $row['size-'.$lang_code];
-			$fields['meta'] = $row['meta-'.$lang_code];
-			$fields['mimetype'] = $row['mimetype-'.$lang_code];
-
-			try{
-				Symphony::Database()->update($fields, "tbl_entries_data_{$this->get('id')}", "`entry_id` = {$entry_id}");
-			}
-			catch( Exception $e ){
-			}
 		}
 
 	}
