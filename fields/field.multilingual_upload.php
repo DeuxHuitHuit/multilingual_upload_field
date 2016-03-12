@@ -211,7 +211,7 @@
 			$all_langs = FLang::getAllLangs();
 			$langs = FLang::getLangs();
 
-			$wrapper->setAttribute('class', $wrapper->getAttribute('class').' field-multilingual_upload field-multilingual');
+			$wrapper->setAttribute('class', $wrapper->getAttribute('class').' field-multilingual');
 			$container = new XMLElement('div', null, array('class' => 'container'));
 
 
