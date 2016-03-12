@@ -14,6 +14,7 @@
 		const FIELD_TABLE = 'tbl_fields_multilingual_upload';
 
 		protected static $assets_loaded = false;
+		protected static $assets_settings_loaded = false;
 
 		/*------------------------------------------------------------------------------------------------*/
 		/*  Installation  */
@@ -218,6 +219,20 @@
 				$page = Administration::instance()->Page;
 
 				$page->addScriptToHead(URL.'/extensions/'.MUF_GROUP.'/assets/'.MUF_GROUP.'.publish.js', null, false);
+			}
+		}
+
+		public static function appendSettingsAssets(){
+			if( self::$assets_settings_loaded === false
+				&& class_exists('Administration')
+				&& Administration::instance() instanceof Administration
+				&& Administration::instance()->Page instanceof HTMLPage ){
+
+				self::$assets_settings_loaded = true;
+
+				$page = Administration::instance()->Page;
+
+				$page->addScriptToHead(URL.'/extensions/'.MUF_GROUP.'/assets/'.MUF_GROUP.'.settings.js', null, false);
 			}
 		}
 	}

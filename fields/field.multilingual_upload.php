@@ -85,6 +85,8 @@
 
 		public function displaySettingsPanel(XMLElement &$wrapper, $errors = null)
 		{
+			Extension_Multilingual_Upload_Field::appendSettingsAssets();
+
 			parent::displaySettingsPanel($wrapper, $errors);
 
 			$last_div_pos = $wrapper->getNumberOfChildren() - 1;
