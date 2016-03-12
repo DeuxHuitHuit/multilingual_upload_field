@@ -220,9 +220,47 @@
 			/*------------------------------------------------------------------------------------------------*/
 
 			$label = Widget::Label($this->get('label'), null, 'file');
-			if ($this->get('required') != 'yes') {
-				$label->appendChild(new XMLElement('i', __('Optional')));
+			$optional = '';
+			$required_languages = $this->getRequiredLanguages();
+
+			$required = in_array('all', $required_languages) || count($langs) == count($required_languages);
+
+			if (!$required) {
+				if (empty($required_languages)) {
+					$optional .= __('All languages are optional');
+				} else {
+					$optional_langs = array();
+					foreach ($langs as $lang) {
+						if (!in_array($lang, $required_languages)) {
+							$optional_langs[] = $all_langs[$lang];
+						}
+					}
+					
+					foreach ($optional_langs as $idx => $lang) {
+						$optional .= ' ' . __($lang);
+						if ($idx < count($optional_langs) - 2) {
+							$optional .= ',';
+						} else if ($idx < count($optional_langs) - 1) {
+							$optional .= ' ' . __('and');
+						}
+					}
+					if (count($optional_langs) > 1) {
+						$optional .= __(' are optional');
+					} else {
+						$optional .= __(' is optional');
+					}
+				}
 			}
+
+			if ($optional !== '') {
+				foreach ($langs as $lc) {
+					$label->appendChild(new XMLElement('i', $optional, array(
+						'class'          => "tab-element tab-$lc",
+						'data-lang_code' => $lc
+					)));
+				}
+			}
+
 			$container->appendChild($label);
 
 			/*------------------------------------------------------------------------------------------------*/
