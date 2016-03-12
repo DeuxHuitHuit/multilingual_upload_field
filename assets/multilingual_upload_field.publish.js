@@ -1,7 +1,7 @@
 (function ($, Symphony, window, undefined) {
 
 	$(document).ready(function(){
-		if ($('div.file:has(a):has(em)').length === 0) {
+		if (Symphony.Elements.contents.find('.field-multilingual_upload div.file:has(a):has(em)').length === 0) {
 			$('<em>' + Symphony.Language.get('Remove File') + '</em>').appendTo('div.file:has(a)').click(function (event) {
 				event.preventDefault();
 
