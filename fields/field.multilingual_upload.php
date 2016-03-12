@@ -1,14 +1,10 @@
 <?php
 
-	if( !defined('__IN_SYMPHONY__') ) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
-
-
+	if(!defined('__IN_SYMPHONY__')) die('<h2>Symphony Error</h2><p>You cannot directly access this file</p>');
 
 	require_once(TOOLKIT.'/fields/field.upload.php');
 	require_once(EXTENSIONS.'/frontend_localisation/extension.driver.php');
 	require_once(EXTENSIONS.'/frontend_localisation/lib/class.FLang.php');
-
-
 
 	final class fieldMultilingual_Upload extends fieldUpload
 	{
@@ -26,9 +22,9 @@
 		public function createTable(){
 			$query = "
 				CREATE TABLE IF NOT EXISTS `tbl_entries_data_{$this->get('id')}` (
-		            `id` int(11) unsigned NOT NULL auto_increment,
-		            `entry_id` int(11) unsigned NOT NULL,
-		            `file` varchar(255) default NULL,
+					`id` int(11) unsigned NOT NULL auto_increment,
+					`entry_id` int(11) unsigned NOT NULL,
+					`file` varchar(255) default NULL,
 					`size` int(11) unsigned NULL,
 					`mimetype` varchar(50) default NULL,
 					`meta` varchar(255) default NULL,";
@@ -46,11 +42,10 @@
 			$query .= "
 					PRIMARY KEY (`id`),
 					UNIQUE KEY `entry_id` (`entry_id`)
-	    		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
 
 			return Symphony::Database()->query($query);
 		}
-
 
 
 		/*------------------------------------------------------------------------------------------------*/
