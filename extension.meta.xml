@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension id="multilingual_upload_field" status="released" xmlns="http://getsymphony.com/schemas/extension/1.0">
-	<name>Field: Multilingual Upload</name>
+	<name>Field: Multilingual File Upload</name>
 	<description>Multilingual version of the classic Upload Field.</description>
 	<repo type="github">https://github.com/DeuxHuitHuit/multilingual_upload_field</repo>
 	<url type="discuss">http://www.getsymphony.com/discuss/thread/80130/</url>
@@ -8,6 +8,7 @@
 		<type>Field Types</type>
 		<type>Multilingual</type>
 		<type>Upload</type>
+		<type>File</type>
 	</types>
 	<authors>
 		<author>
@@ -24,6 +25,12 @@
 		<dependency version="1.6">https://github.com/DeuxHuitHuit/frontend_localisation</dependency>
 	</dependencies>
 	<releases>
+		<release version="2.0.0" date="2016-03-13" min="2.5.0" max="2.x.x"><![CDATA[
+			* Added required languages: make languages required or not
+			* Better optional label in publish view
+			* Better required language label in settings view
+			* Renamed the field to Multilingual *File* Upload
+		]]></release>
 		<release version="1.6.3" date="2016-01-29" min="2.3.3" max="2.6.x"><![CDATA[
 			* Fix broken 1.6.2 update code
 		]]></release>
