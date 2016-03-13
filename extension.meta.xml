@@ -25,6 +25,9 @@
 		<dependency version="1.6">https://github.com/DeuxHuitHuit/frontend_localisation</dependency>
 	</dependencies>
 	<releases>
+		<release version="2.0.1" date="2016-03-14" min="2.5.0" max="2.x.x"><![CDATA[
+			* Fixed a regression bug where file would be lost (in the database)
+		]]></release>
 		<release version="2.0.0" date="2016-03-13" min="2.5.0" max="2.x.x"><![CDATA[
 			* Added required languages: make languages required or not
 			* Better optional label in publish view
