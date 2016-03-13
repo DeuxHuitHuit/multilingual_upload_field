@@ -382,11 +382,10 @@
 			$status = self::__OK__;
 			$result = array();
 			$field_data = $data;
-
+			$main_lang = FLang::getMainLang();
 			$missing_langs = array();
 
 			foreach (FLang::getLangs() as $lc) {
-
 				if (!isset($field_data[$lc])) {
 					$missing_langs[] = $lc;
 					continue;
@@ -398,20 +397,33 @@
 					$data['name'] = $this->getUniqueFilename($data['name'], $lc);
 				}
 
-				$file_result = parent::processRawFieldData($data, $status, $message, $simulate, $entry_id);
-
-				if (FLang::getMainLang() == $lc) {
-					$result = array_merge($result, array(
-						'file'     => $data["file-$lc"],
-						'size'     => $data["size-$lc"],
-						'meta'     => $data["meta-$lc"],
-						'mimetype' => $data["mimetype-$lc"],
+				// Make this language the default for now
+				// parent::processRawFieldData needs this.
+				if ($entry_id) {
+					Symphony::Database()->query(sprintf(
+						"UPDATE `tbl_entries_data_%d`
+							SET
+							`file` = `file-$lc`,
+							`mimetype` = `mimetype-$lc`,
+							`size` = `size-$lc`,
+							`meta` = `meta-$lc`
+							WHERE `entry_id` = %d",
+						$this->get('id'),
+						$entry_id
 					));
+				}
+
+				$local_status = self::__OK__;
+				$local_messsage = '';
+				$file_result = parent::processRawFieldData($data, $local_status, $local_messsage, $simulate, $entry_id);
+				if ($local_status != self::__OK__) {
+					$message .= $local_messsage;
+					$status = $local_status;
 				}
 
 				if (is_array($file_result)) {
 					foreach ($file_result as $key => $value) {
-						$result[$key.'-'.$lc] = $value;
+						$result["$key-$lc"] = $value;
 					}
 				}
 			}
@@ -420,14 +432,18 @@
 				$crt_data = $this->getCurrentData($entry_id);
 
 				foreach ($missing_langs as $lc) {
-					$result = array_merge($result, array(
-						"file-$lc"     => $crt_data["file-$lc"],
-						"size-$lc"     => $crt_data["size-$lc"],
-						"meta-$lc"     => $crt_data["meta-$lc"],
-						"mimetype-$lc" => $crt_data["mimetype-$lc"],
-					));
+					$result["file-$lc"]     = $crt_data["file-$lc"];
+					$result["size-$lc"]     = $crt_data["size-$lc"];
+					$result["meta-$lc"]     = $crt_data["meta-$lc"];
+					$result["mimetype-$lc"] = $crt_data["mimetype-$lc"];
 				}
 			}
+
+			// Update main lang
+			$result['file']     = $result["file-$main_lang"];
+			$result['size']     = $result["size-$main_lang"];
+			$result['meta']     = $result["meta-$main_lang"];
+			$result['mimetype'] = $result["mimetype-$main_lang"];
 
 			return $result;
 		}
