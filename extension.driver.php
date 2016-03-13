@@ -73,17 +73,10 @@
 
 		public function uninstall()
 		{
-			try{
-				Symphony::Database()->query(sprintf(
-					"DROP TABLE `%s`",
-					self::FIELD_TABLE
-				));
-			}
-			catch( DatabaseException $dbe ){
-				// table deosn't exist
-			}
-
-			return true;
+			return Symphony::Database()->query(sprintf(
+				"DROP TABLE IF EXISTS `%s`",
+				self::FIELD_TABLE
+			));
 		}
 
 
