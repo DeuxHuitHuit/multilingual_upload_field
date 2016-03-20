@@ -555,23 +555,26 @@
 		protected function getLang($data = null)
 		{
 			$required_languages = $this->getRequiredLanguages();
-			$lc = Lang::get();
+			// Get Lang from Frontend Localisation
+			$lc = FLang::getLangCode();
 
 			if (!FLang::validateLangCode($lc)) {
-				$lc = FLang::getLangCode();
+				// Revert to backend language
+				$lc = Lang::get();
 			}
 
 			// If value is empty for this language, load value from main language
-			if (is_array($data) && $this->get('default_main_lang') == 'yes' && empty($data["value-$lc"])) {
-				$lc = FLang::getMainLang();
+			if (is_array($data) && $this->get('default_main_lang') == 'yes') {
+				// If value is empty
+				if (empty($data["file-$lc"])) {
+					$lc = FLang::getMainLang();
+				}
+				// If value if still empty try to use the value from the first
+				// required language
+				if (empty($data["file-$lc"]) && count($required_languages) > 0) {
+					$lc = $required_languages[0];
+				}
 			}
-
-			// If value if still empty try to use the value from the first
-			// required language
-			if (is_array($data) && empty($data["value-$lc"]) && count($required_languages) > 0) {
-				$lc = $required_languages[0];
-			}
-
 			return $lc;
 		}
 
