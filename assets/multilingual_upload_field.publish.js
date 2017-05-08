@@ -2,7 +2,7 @@
 
 	$(document).ready(function(){
 		if (Symphony.Elements.contents.find('.field-multilingual_upload div.file:has(a):has(em)').length === 0) {
-			$('<em>' + Symphony.Language.get('Remove File') + '</em>').appendTo('div.file:has(a)').click(function (event) {
+			$('<em>' + Symphony.Language.get('Remove File') + '</em>').appendTo('div.file:has(a) .frame').click(function (event) {
 				event.preventDefault();
 
 				var div = $(this).parent(),
