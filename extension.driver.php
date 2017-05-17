@@ -38,7 +38,7 @@
 			));
 		}
 
-		public function update($previous_version)
+		public function update($previous_version = false)
 		{
 			if(version_compare($previous_version, '1.2', '<')) {
 				Symphony::Database()->query("ALTER TABLE `tbl_fields_multilingualupload` ADD COLUMN `def_ref_lang` ENUM('yes','no') DEFAULT 'yes'");

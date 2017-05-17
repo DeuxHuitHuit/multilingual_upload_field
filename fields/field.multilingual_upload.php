@@ -52,7 +52,7 @@
 		/*  Settings  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function findDefaults(&$settings)
+		public function findDefaults(array &$settings)
 		{
 			if ($settings['unique'] != 'no') {
 				$settings['unique'] = 'yes';
@@ -205,7 +205,7 @@
 		/*  Publish  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function displayPublishPanel(XMLElement &$wrapper, $data = NULL, $flagWithError = NULL, $fieldnamePrefix = NULL, $fieldnamePostfix = NULL){
+		public function displayPublishPanel(XMLElement &$wrapper, $data = NULL, $flagWithError = NULL, $fieldnamePrefix = NULL, $fieldnamePostfix = NULL, $entry_id = NULL){
 			Extension_Frontend_Localisation::appendAssets();
 			Extension_Multilingual_Upload_Field::appendAssets();
 
@@ -374,7 +374,7 @@
 			return $error;
 		}
 
-		public function processRawFieldData($data, &$status, &$message, $simulate = false, $entry_id = NULL){
+		public function processRawFieldData($data, &$status, &$message = NULL, $simulate = false, $entry_id = NULL){
 			if(!is_array($data) || empty($data)) {
 				return parent::processRawFieldData($data, $status, $message, $simulate, $entry_id);
 			}
@@ -463,7 +463,7 @@
 		/*  Output  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function appendFormattedElement(XMLElement &$wrapper, $data){
+		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = NULL, $entry_id = NULL){
 			$lang_code = $this->getLang($data);
 			$data['file'] = $data["file-$lang_code"];
 			$data['size'] = $data["size-$lang_code"];
@@ -487,7 +487,7 @@
 			return strip_tags($data["file-$lc"]);
 		}
 
-		public function getParameterPoolValue($data) {
+		public function getParameterPoolValue(array $data, $entry_id = NULL) {
 			$lc = $this->getLang();
 			return $data["file-$lc"];
 		}
@@ -514,7 +514,7 @@
 		/*  Utilities  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function entryDataCleanup($entry_id, $data)
+		public function entryDataCleanup($entry_id, $data = NULL)
 		{
 			foreach( FLang::getLangs() as $lc ){
 				$file_location = WORKSPACE.'/'.ltrim($data['file-'.$lc], '/');
