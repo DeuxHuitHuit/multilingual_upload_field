@@ -612,7 +612,13 @@
 
 				if( $this->get('unique') == 'yes' ) $replace .= ".'-'.time()";
 
-				return preg_replace("/(.*)(\.[^\.]+)/e", "substr('$1', 0, $crop).'-'.$replace.'$2'", $filename);
+				return preg_replace_callback(
+					"/(.*)(\.[^\.]+)/",
+					function($matches){
+						return substr($matches[1], 0, $crop).'-'.$replace.$matches[2];
+					},
+					$filename
+				);
 			}
 
 			return $filename;
