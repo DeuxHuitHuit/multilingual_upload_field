@@ -25,6 +25,9 @@
 		<dependency version="1.6">https://github.com/DeuxHuitHuit/frontend_localisation</dependency>
 	</dependencies>
 	<releases>
+		<release version="2.0.3" date="2017-06-05" min="2.5.0" max="2.x.x"><![CDATA[
+			* Make sure consolidate value does not end up in config.php
+		]]></release>
 		<release version="2.0.2" date="2016-03-20" min="2.5.0" max="2.x.x"><![CDATA[
 			* Fixed issues with language selection
 		]]></release>
