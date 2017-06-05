@@ -93,6 +93,11 @@
 					'callback' => 'dAddCustomPreferenceFieldsets'
 				),
 				array(
+					'page'     => '/system/preferences/',
+					'delegate' => 'Save',
+					'callback' => 'dSave'
+				),
+				array(
 					'page' => '/extensions/frontend_localisation/',
 					'delegate' => 'FLSavePreferences',
 					'callback' => 'dFLSavePreferences'
@@ -122,6 +127,16 @@
 			$group->appendChild(new XMLElement('p', __('Check this field if you want to consolidate database by <b>keeping</b> entry values of removed/old Language Driver language codes. Entry values of current language codes will not be affected.'), array('class' => 'help')));
 
 			$context['wrapper']->appendChild($group);
+		}
+
+		/**
+		 * Edits the preferences to be saved
+		 *
+		 * @param array $context
+		 */
+		public function dSave($context) {
+			// prevent the saving of the values
+			unset($context['settings'][MUF_GROUP]);
 		}
 
 		/**
