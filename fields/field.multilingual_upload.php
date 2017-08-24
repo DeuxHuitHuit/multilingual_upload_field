@@ -22,19 +22,19 @@
 		public function createTable(){
 			$query = "
 				CREATE TABLE IF NOT EXISTS `tbl_entries_data_{$this->get('id')}` (
-					`id` int(11) unsigned NOT NULL auto_increment,
-					`entry_id` int(11) unsigned NOT NULL,
-					`file` varchar(255) default NULL,
-					`size` int(11) unsigned NULL,
-					`mimetype` varchar(50) default NULL,
-					`meta` varchar(255) default NULL,";
+					`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+					`entry_id` INT(11) UNSIGNED NOT NULL,
+					`file` VARCHAR(255) DEFAULT NULL,
+					`size` INT(11) UNSIGNED NULL,
+					`mimetype` VARCHAR(50) DEFAULT NULL,
+					`meta` VARCHAR(255) DEFAULT NULL,";
 
 			foreach( FLang::getLangs() as $lc ){
 				$query .= sprintf('
-					`file-%1$s` varchar(255) default NULL,
-					`size-%1$s` int(11) unsigned NULL,
-					`mimetype-%1$s` varchar(50) default NULL,
-					`meta-%1$s` varchar(255) default NULL,',
+					`file-%1$s` VARCHAR(255) DEFAULT NULL,
+					`size-%1$s` INT(11) UNSIGNED NULL,
+					`mimetype-%1$s` VARCHAR(50) DEFAULT NULL,
+					`meta-%1$s` VARCHAR(255) DEFAULT NULL,',
 					$lc
 				);
 			}
@@ -205,7 +205,7 @@
 		/*  Publish  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function displayPublishPanel(XMLElement &$wrapper, $data = NULL, $flagWithError = NULL, $fieldnamePrefix = NULL, $fieldnamePostfix = NULL, $entry_id = NULL){
+		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = null){
 			Extension_Frontend_Localisation::appendAssets();
 			Extension_Multilingual_Upload_Field::appendAssets();
 
@@ -287,8 +287,8 @@
 			/*------------------------------------------------------------------------------------------------*/
 
 			foreach ($langs as $lc) {
-				$div = new XMLElement('div', NULL, array('class' => 'file tab-panel tab-'.$lc));
-				$frame = new XMLElement('div', NULL, array('class' => 'frame'));
+				$div = new XMLElement('div', null, array('class' => 'file tab-panel tab-'.$lc));
+				$frame = new XMLElement('div', null, array('class' => 'frame'));
 
 				$file = 'file-'.$lc;
 
@@ -324,7 +324,7 @@
 				$flagWithError = __('Destination folder, <code>%s</code>, is not writable. Please check permissions.', array($this->get('destination')));
 			}
 
-			if ($flagWithError != NULL ) {
+			if ($flagWithError != null ) {
 				$wrapper->appendChild(Widget::Error($container, $flagWithError));
 			}
 			else {
@@ -338,7 +338,7 @@
 		/*  Input  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function checkPostFieldData($data, &$message, $entry_id = NULL){
+		public function checkPostFieldData($data, &$message, $entry_id = null){
 			$error = self::__OK__;
 			$field_data = $data;
 			$all_langs = FLang::getAllLangs();
@@ -377,7 +377,7 @@
 			return $error;
 		}
 
-		public function processRawFieldData($data, &$status, &$message = NULL, $simulate = false, $entry_id = NULL){
+		public function processRawFieldData($data, &$status, &$message = null, $simulate = false, $entry_id = null){
 			if(!is_array($data) || empty($data)) {
 				return parent::processRawFieldData($data, $status, $message, $simulate, $entry_id);
 			}
@@ -466,7 +466,7 @@
 		/*  Output  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = NULL, $entry_id = NULL){
+		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null){
 			$lang_code = $this->getLang($data);
 			$data['file'] = $data["file-$lang_code"];
 			$data['size'] = $data["size-$lang_code"];
@@ -476,7 +476,7 @@
 		}
 
 		// @todo: remove and fallback to default (Symphony 2.5 only?)
-		public function prepareTableValue($data, XMLElement $link = NULL, $entry_id = null){
+		public function prepareTableValue($data, XMLElement $link = null, $entry_id = null){
 			$lang_code = $this->getLang($data);
 			$data['file'] = $data["file-$lang_code"];
 			$data['size'] = $data["size-$lang_code"];
@@ -490,7 +490,7 @@
 			return strip_tags($data["file-$lc"]);
 		}
 
-		public function getParameterPoolValue(array $data, $entry_id = NULL) {
+		public function getParameterPoolValue(array $data, $entry_id = null) {
 			$lc = $this->getLang();
 			return $data["file-$lc"];
 		}
@@ -517,7 +517,7 @@
 		/*  Utilities  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function entryDataCleanup($entry_id, $data = NULL)
+		public function entryDataCleanup($entry_id, $data = null)
 		{
 			foreach( FLang::getLangs() as $lc ){
 				$file_location = WORKSPACE.'/'.ltrim($data['file-'.$lc], '/');
