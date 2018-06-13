@@ -1,16 +1,20 @@
 (function ($, Symphony, window, undefined) {
 
 	$(document).ready(function(){
-		if (Symphony.Elements.contents.find('.field-multilingual_upload div.file:has(a):has(em)').length === 0) {
-			$('<em>' + Symphony.Language.get('Remove File') + '</em>').appendTo('div.file:has(a) .frame').click(function (event) {
-				event.preventDefault();
+		$('div.field-multilingual_upload .file').each(function () {
+			var t = $(this);
 
-				var div = $(this).parent(),
-					name = div.find('input').attr('name');
+			if (t.find('a').length) {
+				$('<em>' + Symphony.Language.get('Remove File') + '</em>').appendTo($('.frame', t)).click(function (event) {
+					event.preventDefault();
 
-				div.empty().append('<input name="' + name + '" type="file">');
-			});
-		}
+					var div = $(this).parent(),
+						name = div.find('input').attr('name');
+
+					div.empty().append('<input name="' + name + '" type="file">');
+				});
+			}
+		});
 	});
 
 }(this.jQuery, this.Symphony, this));
