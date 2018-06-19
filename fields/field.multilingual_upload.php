@@ -487,7 +487,7 @@
 				->from('tbl_entries_data_' . $this->get('id'))
 				->where(['entry_id' => $entry_id])
 				->execute()
-				->rows()[0];
+				->next();
 
 		}
 
