@@ -259,10 +259,22 @@
 							Symphony::Database()
 								->alter($entries_table)
 								->add([
-									'file-' . $lc,
-									'size-' . $lc,
-									'mimetype-' . $lc,
-									'meta-' . $lc,
+									'file-' . $lc => [
+										'type' => 'varchar(255)',
+										'null' => true,
+									],
+									'size-' . $lc => [
+										'type' => 'int(11)',
+										'null' => true,
+									],
+									'mimetype-' . $lc => [
+										'type' => 'varchar(50)',
+										'null' => true,
+									],
+									'meta-' . $lc => [
+										'type' => 'varchar(255)',
+										'null' => true,
+									],
 								])
 								->execute()
 								->success();
