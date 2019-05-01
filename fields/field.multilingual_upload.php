@@ -5,6 +5,7 @@
 	require_once(TOOLKIT.'/fields/field.upload.php');
 	require_once(EXTENSIONS.'/frontend_localisation/extension.driver.php');
 	require_once(EXTENSIONS.'/frontend_localisation/lib/class.FLang.php');
+	require_once(EXTENSIONS.'/multilingual_upload_field/lib/class.entryquerymultilingualuploadadapter.php');
 
 	final class fieldMultilingual_Upload extends fieldUpload
 	{
@@ -15,36 +16,68 @@
 
 		public function __construct(){
 			parent::__construct();
+			$this->entryQueryFieldAdapter = new EntryQueryMultilingualUploadAdapter($this);
 
 			$this->_name = __('Multilingual File Upload');
 		}
 
-		public function createTable(){
-			$query = "
-				CREATE TABLE IF NOT EXISTS `tbl_entries_data_{$this->get('id')}` (
-					`id` int(11) unsigned NOT NULL auto_increment,
-					`entry_id` int(11) unsigned NOT NULL,
-					`file` varchar(255) default NULL,
-					`size` int(11) unsigned NULL,
-					`mimetype` varchar(50) default NULL,
-					`meta` varchar(255) default NULL,";
-
-			foreach( FLang::getLangs() as $lc ){
-				$query .= sprintf('
-					`file-%1$s` varchar(255) default NULL,
-					`size-%1$s` int(11) unsigned NULL,
-					`mimetype-%1$s` varchar(50) default NULL,
-					`meta-%1$s` varchar(255) default NULL,',
-					$lc
-				);
+		public static function generateTableColumns($langs = null)
+		{
+			$cols = array();
+			foreach (FLang::getLangs() as $lc) {
+				$cols['file-' . $lc] = [
+					'type' => 'varchar(255)',
+					'null' => true,
+				];
+				$cols['size-' . $lc] = [
+					'type' => 'int(11)',
+					'null' => true,
+				];
+				$cols['mimetype-' . $lc] = [
+					'type' => 'varchar(50)',
+					'null' => true,
+				];
+				$cols['meta-' . $lc] = [
+					'type' => 'varchar(255)',
+					'null' => true,
+				];
 			}
+			return $cols;
+		}
 
-			$query .= "
-					PRIMARY KEY (`id`),
-					UNIQUE KEY `entry_id` (`entry_id`)
-				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
-
-			return Symphony::Database()->query($query);
+		public function createTable(){
+			return Symphony::Database()
+				->create('tbl_entries_data_' . $this->get('id'))
+				->ifNotExists()
+				->fields(array_merge([
+					'id' => [
+						'type' => 'int(11)',
+						'auto' => true,
+					],
+					'entry_id' => 'int(11)',
+					'file' => [
+						'type' => 'varchar(255)',
+						'null' => true,
+					],
+					'size' => [
+						'type' => 'int(11)',
+						'null' => true,
+					],
+					'mimetype' => [
+						'type' => 'varchar(50)',
+						'null' => true,
+					],
+					'meta' => [
+						'type' => 'varchar(255)',
+						'null' => true,
+					],
+				], self::generateTableColumns()))
+				->keys([
+					'id' => 'primary',
+					'entry_id' => 'unique',
+				])
+				->execute()
+				->success();
 		}
 
 
@@ -182,21 +215,16 @@
 				return false;
 			}
 
-			return Symphony::Database()->query(sprintf("
-				UPDATE
-					`tbl_fields_%s`
-				SET
-					`default_main_lang` = '%s',
-					`required_languages` = '%s',
-					`unique` = '%s'
-				WHERE
-					`field_id` = '%s';",
-				$this->handle(),
-				$this->get('default_main_lang') === 'yes' ? 'yes' : 'no',
-				implode(',', $this->get('required_languages')),
-				$this->get('unique'),
-				$this->get('id')
-			));
+			return Symphony::Database()
+				->update('tbl_fields_' . $this->handle())
+				->set([
+					'default_main_lang' => $this->get('default_main_lang') === 'yes' ? 'yes' : 'no',
+					'required_languages' => implode(',', $this->get('required_languages')),
+					'unique' => $this->get('unique'),
+				])
+				->where(['field_id' => $this->get('id')])
+				->execute()
+				->success();
 		}
 
 
@@ -205,7 +233,7 @@
 		/*  Publish  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function displayPublishPanel(XMLElement &$wrapper, $data = NULL, $flagWithError = NULL, $fieldnamePrefix = NULL, $fieldnamePostfix = NULL, $entry_id = NULL){
+		public function displayPublishPanel(XMLElement &$wrapper, $data = null, $flagWithError = null, $fieldnamePrefix = null, $fieldnamePostfix = null, $entry_id = null){
 			Extension_Frontend_Localisation::appendAssets();
 			Extension_Multilingual_Upload_Field::appendAssets();
 
@@ -238,7 +266,7 @@
 							$optional_langs[] = $all_langs[$lang];
 						}
 					}
-					
+
 					foreach ($optional_langs as $idx => $lang) {
 						$optional .= ' ' . __($lang);
 						if ($idx < count($optional_langs) - 2) {
@@ -275,8 +303,9 @@
 			/*------------------------------------------------------------------------------------------------*/
 
 			$ul = new XMLElement('ul', null, array('class' => 'tabs'));
+
 			foreach ($langs as $lc) {
-				$li = new XMLElement('li', $all_langs[$lc], array('class' => $lc));
+				$li = new XMLElement('li', $lc, array('class' => $lc));
 				$lc === $main_lang ? $ul->prependChild($li) : $ul->appendChild($li);
 			}
 			$container->appendChild($ul);
@@ -286,19 +315,20 @@
 			/*------------------------------------------------------------------------------------------------*/
 
 			foreach ($langs as $lc) {
-				$div = new XMLElement('div', NULL, array('class' => 'file tab-panel tab-'.$lc));
+				$div = new XMLElement('div', null, array('class' => 'file tab-panel tab-'.$lc));
+				$frame = new XMLElement('span', null, array('class' => 'frame'));
 
 				$file = 'file-'.$lc;
 
 				if( $data[$file] ){
 					$filePath = $this->get('destination').'/'.$data[$file];
-					
-					$div->appendChild(
+
+					$frame->appendChild(
 						Widget::Anchor($filePath, URL.$filePath)
 					);
 				}
 
-				$div->appendChild(
+				$frame->appendChild(
 					Widget::Input(
 						'fields'.$fieldnamePrefix.'['.$this->get('element_name').']['.$lc.']'.$fieldnamePostfix,
 						$data[$file],
@@ -306,6 +336,7 @@
 					)
 				);
 
+				$div->appendChild($frame);
 				$container->appendChild($div);
 			}
 
@@ -321,7 +352,7 @@
 				$flagWithError = __('Destination folder, <code>%s</code>, is not writable. Please check permissions.', array($this->get('destination')));
 			}
 
-			if ($flagWithError != NULL ) {
+			if ($flagWithError != null ) {
 				$wrapper->appendChild(Widget::Error($container, $flagWithError));
 			}
 			else {
@@ -335,7 +366,7 @@
 		/*  Input  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function checkPostFieldData($data, &$message, $entry_id = NULL){
+		public function checkPostFieldData($data, &$message, $entry_id = null){
 			$error = self::__OK__;
 			$field_data = $data;
 			$all_langs = FLang::getAllLangs();
@@ -374,7 +405,7 @@
 			return $error;
 		}
 
-		public function processRawFieldData($data, &$status, &$message = NULL, $simulate = false, $entry_id = NULL){
+		public function processRawFieldData($data, &$status, &$message = null, $simulate = false, $entry_id = null){
 			if(!is_array($data) || empty($data)) {
 				return parent::processRawFieldData($data, $status, $message, $simulate, $entry_id);
 			}
@@ -400,17 +431,17 @@
 				// Make this language the default for now
 				// parent::processRawFieldData needs this.
 				if ($entry_id) {
-					Symphony::Database()->query(sprintf(
-						"UPDATE `tbl_entries_data_%d`
-							SET
-							`file` = `file-$lc`,
-							`mimetype` = `mimetype-$lc`,
-							`size` = `size-$lc`,
-							`meta` = `meta-$lc`
-							WHERE `entry_id` = %d",
-						$this->get('id'),
-						$entry_id
-					));
+					Symphony::Database()
+						->update('tbl_entries_data_' . $this->get('id'))
+						->set([
+							'file' => '$file-' . $lc,
+							'mimetype' => '$mimetype-' . $lc,
+							'size' => '$size-' . $lc,
+							'meta' => '$meta-' . $lc,
+						])
+						->where(['entry_id' => $entry_id])
+						->execute()
+						->success();
 				}
 
 				$local_status = self::__OK__;
@@ -449,21 +480,20 @@
 		}
 
 		protected function getCurrentData($entry_id) {
-			$query = sprintf(
-				'SELECT * FROM `tbl_entries_data_%d`
-				WHERE `entry_id` = %d',
-				$this->get('id'),
-				$entry_id
-			);
+			return Symphony::Database()
+				->select(['*'])
+				->from('tbl_entries_data_' . $this->get('id'))
+				->where(['entry_id' => $entry_id])
+				->execute()
+				->next();
 
-			return Symphony::Database()->fetchRow(0, $query);
 		}
 
 		/*------------------------------------------------------------------------------------------------*/
 		/*  Output  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = NULL, $entry_id = NULL){
+		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null){
 			$lang_code = $this->getLang($data);
 			$data['file'] = $data["file-$lang_code"];
 			$data['size'] = $data["size-$lang_code"];
@@ -473,7 +503,7 @@
 		}
 
 		// @todo: remove and fallback to default (Symphony 2.5 only?)
-		public function prepareTableValue($data, XMLElement $link = NULL, $entry_id = null){
+		public function prepareTableValue($data, XMLElement $link = null, $entry_id = null){
 			$lang_code = $this->getLang($data);
 			$data['file'] = $data["file-$lang_code"];
 			$data['size'] = $data["size-$lang_code"];
@@ -487,7 +517,7 @@
 			return strip_tags($data["file-$lc"]);
 		}
 
-		public function getParameterPoolValue(array $data, $entry_id = NULL) {
+		public function getParameterPoolValue(array $data, $entry_id = null) {
 			$lc = $this->getLang();
 			return $data["file-$lc"];
 		}
@@ -514,7 +544,7 @@
 		/*  Utilities  */
 		/*------------------------------------------------------------------------------------------------*/
 
-		public function entryDataCleanup($entry_id, $data = NULL)
+		public function entryDataCleanup($entry_id, $data = null)
 		{
 			foreach( FLang::getLangs() as $lc ){
 				$file_location = WORKSPACE.'/'.ltrim($data['file-'.$lc], '/');

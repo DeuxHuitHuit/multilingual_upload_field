@@ -4,8 +4,8 @@
 
 
 
-	define_safe(MUF_NAME, 'Field: Multilingual Upload');
-	define_safe(MUF_GROUP, 'multilingual_upload_field');
+	define_safe('MUF_NAME', 'Field: Multilingual Upload');
+	define_safe('MUF_GROUP', 'multilingual_upload_field');
 
 
 
@@ -22,50 +22,100 @@
 
 		public function install()
 		{
-			return Symphony::Database()->query(sprintf(
-				"CREATE TABLE `%s` (
-					`id` int(11) unsigned NOT NULL auto_increment,
-					`field_id` int(11) unsigned NOT NULL,
-					`destination` VARCHAR(255) NOT NULL,
-					`validator` VARCHAR(255),
-					`unique` enum('yes','no') DEFAULT 'yes',
-					`default_main_lang` enum('yes','no') NOT NULL DEFAULT 'no',
-					`required_languages` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-					PRIMARY KEY (`id`),
-					KEY `field_id` (`field_id`)
-				) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;",
-				self::FIELD_TABLE
-			));
+			return Symphony::Database()
+				->create(self::FIELD_TABLE)
+				->ifNotExists()
+				->fields([
+					'id' => [
+						'type' => 'int(11)',
+						'auto' => true,
+					],
+					'field_id' => 'int(11)',
+					'destination' => 'varchar(255)',
+					'validator' => 'varchar(255)',
+					'unique' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'yes',
+					],
+					'default_main_lang' => [
+						'type' => 'enum',
+						'values' => ['yes','no'],
+						'default' => 'no',
+					],
+					'required_languages' => [
+						'type' => 'varchar(255)',
+						'null' => true,
+					],
+				])
+				->keys([
+					'id' => 'primary',
+					'field_id' => 'key',
+				])
+				->execute()
+				->success();
 		}
 
 		public function update($previous_version = false)
 		{
 			if(version_compare($previous_version, '1.2', '<')) {
-				Symphony::Database()->query("ALTER TABLE `tbl_fields_multilingualupload` ADD COLUMN `def_ref_lang` ENUM('yes','no') DEFAULT 'yes'");
-				Symphony::Database()->query("UPDATE `tbl_fields_multilingualupload` SET `def_ref_lang` = 'no'");
+				Symphony::Database()
+					->alter(self::FIELD_TABLE)
+					->add([
+						'def_ref_lang' => [
+							'type' => 'enum',
+							'values' => ['yes','no'],
+							'default' => 'yes',
+						],
+					])
+					->execute()
+					->success();
+
+				Symphony::Database()
+					->update(self::FIELD_TABLE)
+					->set([
+						'def_ref_lang' => 'no',
+					])
+					->execute()
+					->success();
 			}
 
 			if(version_compare($previous_version, '1.6', '<')) {
-				Symphony::Database()->query(sprintf(
-					"RENAME TABLE `tbl_fields_multilingualupload` TO `%s`;",
-					self::FIELD_TABLE
-				));
+				Symphony::Database()
+					->rename('tbl_fields_multilingualupload')
+					->to(self::FIELD_TABLE)
+					->execute()
+					->success();
 			}
-			
+
 			if(version_compare($previous_version, '1.6.1', '<')) {
-				Symphony::Database()->query(sprintf(
-					"ALTER TABLE `%s` MODIFY `validator` VARCHAR(255);",
-					self::FIELD_TABLE
-				));
+				Symphony::Database()
+					->alter(self::FIELD_TABLE)
+					->modify([
+						'validator' => 'varchar(255)'
+					])
+					->execute()
+					->success();
 			}
 
 			if (version_compare($previous_version, '2.0.0', '<')) {
-				Symphony::Database()->query(sprintf(
-					"ALTER TABLE `%s`
-						CHANGE COLUMN `def_ref_lang` `default_main_lang` ENUM('yes', 'no') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
-						ADD `required_languages` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL;",
-					self::FIELD_TABLE
-				));
+				Symphony::Database()
+					->alter(self::FIELD_TABLE)
+					->change('def_ref_lang', [
+						'default_main_lang' => [
+							'type' => 'enum',
+							'values' => ['yes', 'no'],
+							'default' => 'no',
+						],
+					])
+					->add([
+						'required_languages' => [
+							'type' => 'varchar(255)',
+							'null' => true,
+						],
+					])
+					->execute()
+					->success();
 			}
 
 			return true;
@@ -73,10 +123,11 @@
 
 		public function uninstall()
 		{
-			return Symphony::Database()->query(sprintf(
-				"DROP TABLE IF EXISTS `%s`",
-				self::FIELD_TABLE
-			));
+			return Symphony::Database()
+				->drop(self::FIELD_TABLE)
+				->ifExists()
+				->execute()
+				->success();
 		}
 
 
@@ -122,7 +173,7 @@
 			$group->appendChild(new XMLElement('legend', __(MUF_NAME)));
 
 			$label = Widget::Label(__('Consolidate entry data'));
-			$label->appendChild(Widget::Input('settings['.MUF_GROUP.'][consolidate]', 'yes', 'checkbox', array('checked' => 'checked')));
+			$label->prependChild(Widget::Input('settings['.MUF_GROUP.'][consolidate]', 'yes', 'checkbox', array('checked' => 'checked')));
 			$group->appendChild($label);
 			$group->appendChild(new XMLElement('p', __('Check this field if you want to consolidate database by <b>keeping</b> entry values of removed/old Language Driver language codes. Entry values of current language codes will not be affected.'), array('class' => 'help')));
 
@@ -145,10 +196,11 @@
 		 * @param array $context
 		 */
 		public function dFLSavePreferences($context){
-			$fields = Symphony::Database()->fetch(sprintf(
-				'SELECT `field_id` FROM `%s`',
-				self::FIELD_TABLE
-			));
+			$fields = Symphony::Database()
+				->select(['field_id'])
+				->from(self::FIELD_TABLE)
+				->execute()
+				->rows();
 
 			if( is_array($fields) && !empty($fields) ){
 				$consolidate = $context['context']['settings'][MUF_GROUP]['consolidate'];
@@ -158,17 +210,20 @@
 					$entries_table = 'tbl_entries_data_'.$field["field_id"];
 
 					try{
-						$show_columns = Symphony::Database()->fetch(sprintf(
-							"SHOW COLUMNS FROM `%s` LIKE 'file-%%'",
-							$entries_table
-						));
+						$show_columns = Symphony::Database()
+							->showColumns()
+							->from($entries_table)
+							->like('file-%%')
+							->execute()
+							->rows();
 					}
 					catch( DatabaseException $dbe ){
-						// Field doesn't exist. Better remove it's settings
-						Symphony::Database()->query(sprintf(
-							"DELETE FROM `%s` WHERE `field_id` = '%s';",
-							self::FIELD_TABLE, $field["field_id"]
-						));
+						Symphony::Database()
+							->delete(self::FIELD_TABLE)
+							->where(['field_id' => $field['field_id']])
+							->execute()
+							->success();
+
 						continue;
 					}
 
@@ -182,30 +237,47 @@
 
 							// If not consolidate option AND column lang_code not in supported languages codes -> Drop Column
 							if( ($consolidate !== 'yes') && !in_array($lc, $context['new_langs']) )
-								Symphony::Database()->query(sprintf(
-									'ALTER TABLE `%1$s`
-										DROP COLUMN `file-%2$s`,
-										DROP COLUMN `size-%2$s`,
-										DROP COLUMN `mimetype-%2$s`,
-										DROP COLUMN `meta-%2$s`;',
-									$entries_table, $lc
-								));
+								Symphony::Database()
+									->alter($entries_table)
+									->drop([
+										'file-' . $lc,
+										'size-' . $lc,
+										'mimetype-' . $lc,
+										'meta-' . $lc,
+									])
+									->execute()
+									->success();
 							else
 								$columns[] = $column['Field'];
 						}
 
 					// Add new fields
-					foreach( $context['new_langs'] as $lc )
-
-						if( !in_array('file-'.$lc, $columns) )
-							Symphony::Database()->query(sprintf(
-								'ALTER TABLE `%1$s`
-									ADD COLUMN `file-%2$s` varchar(255) default NULL,
-									ADD COLUMN `size-%2$s` int(11) unsigned NULL,
-									ADD COLUMN `mimetype-%2$s` varchar(50) default NULL,
-									ADD COLUMN `meta-%2$s` varchar(255) default NULL;',
-								$entries_table, $lc
-							));
+					foreach( $context['new_langs'] as $lc ) {
+						if( !in_array('file-'.$lc, $columns) ) {
+							Symphony::Database()
+								->alter($entries_table)
+								->add([
+									'file-' . $lc => [
+										'type' => 'varchar(255)',
+										'null' => true,
+									],
+									'size-' . $lc => [
+										'type' => 'int(11)',
+										'null' => true,
+									],
+									'mimetype-' . $lc => [
+										'type' => 'varchar(50)',
+										'null' => true,
+									],
+									'meta-' . $lc => [
+										'type' => 'varchar(255)',
+										'null' => true,
+									],
+								])
+								->execute()
+								->success();
+						}
+					}
 				}
 			}
 		}
