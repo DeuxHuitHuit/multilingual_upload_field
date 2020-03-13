@@ -4,8 +4,8 @@
 
 
 
-	define_safe(MUF_NAME, 'Field: Multilingual Upload');
-	define_safe(MUF_GROUP, 'multilingual_upload_field');
+	define_safe('MUF_NAME', 'Field: Multilingual Upload');
+	define_safe('MUF_GROUP', 'multilingual_upload_field');
 
 
 
